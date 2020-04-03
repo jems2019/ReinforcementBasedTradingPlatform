@@ -656,6 +656,7 @@ class GetStock(Resource):
         self.new_stock_data = None
         self.ticker = None
 
+    @app.route('/get_stock', methods=['GET'])
     def get(self):
         args = request.args
         start_year = int(args['start_year'])
@@ -670,7 +671,7 @@ class GetStock(Resource):
                                              start_month=start_month, end_month=end_month,
                                              start_day=start_day, end_day=end_day,
                                              ticker=str(ticker),
-                                             path_to_save_csv='/Users/matt/Desktop')
+                                             path_to_save_csv='~/')
         sentiment = sentiment_crawler.sentiment_dataframe_creation()
 
         new_data = RealTimeApi(symbol=ticker)
