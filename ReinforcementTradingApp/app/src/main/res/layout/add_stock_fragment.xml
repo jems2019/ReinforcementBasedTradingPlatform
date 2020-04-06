@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/add_stock"
+        android:id="@+id/add_stock_text"
+        android:textSize="32sp"/>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:id="@+id/edit_text_rel_layout"
+        android:padding="15dp">
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/enter_stock"
+            android:id="@+id/enter_stock_edit_text"/>
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/enter_amount"
+            android:layout_below="@+id/enter_stock_edit_text"
+            android:id="@+id/enter_amount_edit_text"/>
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/enter_percent_loss"
+            android:layout_below="@id/enter_amount_edit_text"
+            android:id="@+id/enter_percent_loss_edit_text"/>
+    </RelativeLayout>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/edit_text_rel_layout"
+        android:layout_marginTop="0dp"
+        android:layout_centerInParent="true"
+        android:text="@string/trade_button" />
+
+</RelativeLayout>

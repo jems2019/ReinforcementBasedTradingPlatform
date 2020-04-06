@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_portfolio"
+        android:icon="@drawable/outline_bar_chart_24"
+        android:title="Portfolio" />
+    <item
+        android:id="@+id/navigation_search"
+        android:icon="@drawable/outline_search_24"
+        android:title="Search" />
+    <item
+        android:id="@+id/navigation_add_stock"
+        android:icon="@drawable/outline_add_circle_outline_24"
+        android:title="Add Stock" />
+</menu>

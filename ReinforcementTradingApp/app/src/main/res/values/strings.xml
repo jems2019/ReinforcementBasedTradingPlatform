@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">ReinforcementTradingApp</string>
     <string name="sign_in_text">Sign In</string>
+    <string name="portfolio">Portfolio</string>
+    <string name="enter_stock">Enter Stock Ticker (ex. AAPL)</string>
+    <string name="add_stock">Add Stock</string>
+    <string name="enter_amount">Enter Amount($)</string>
+    <string name="enter_percent_loss">Enter % Loss</string>
+    <string name="trade_button">Trade</string>
 </resources>
