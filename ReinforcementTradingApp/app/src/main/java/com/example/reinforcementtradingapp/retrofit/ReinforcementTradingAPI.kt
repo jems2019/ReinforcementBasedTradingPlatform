@@ -10,7 +10,7 @@ import retrofit2.http.*
 
 
 
-class APIKindaStuff {
+class ReinforcementTradingAPI {
 
     interface APIService {
         @GET("/users/{user}")

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ReinforcementTradingApp</string>
+    <string name="sign_in_text">Sign In</string>
 </resources>

@@ -1,10 +1,9 @@
 package com.example.reinforcementtradingapp
 
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
-import com.example.reinforcementtradingapp.R
-import com.example.reinforcementtradingapp.retrofit.APIKindaStuff
+import androidx.appcompat.app.AppCompatActivity
+import com.example.reinforcementtradingapp.retrofit.ReinforcementTradingAPI
 import com.google.gson.JsonObject
 import kotlinx.android.synthetic.main.activity_main.*
 import okhttp3.ResponseBody
@@ -24,7 +23,7 @@ class MainActivity : AppCompatActivity() {
             jsonObj.addProperty("singer", "meee")
             jsonObj.addProperty("text", "Jack and jill went up the hill to fetch a pail of water!")
             //  POST demo
-            APIKindaStuff
+            ReinforcementTradingAPI
                 .service
                 .getVectors(jsonObj)
                 .enqueue(object : Callback<ResponseBody> {
@@ -43,7 +42,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnGET.setOnClickListener {
-            APIKindaStuff
+            ReinforcementTradingAPI
                 .service
                 .greetUser("RJEMS TEST")
                 .enqueue(object : Callback<ResponseBody> {
