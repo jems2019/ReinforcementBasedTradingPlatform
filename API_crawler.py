@@ -1,5 +1,5 @@
+#/usr/bin/python3.7
 
-from flask import Flask, request, jsonify
 # import future
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -9,6 +9,7 @@ import warnings
 import json
 import pdb
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from flask import Flask, request, jsonify
 from flask_restful import Api, Resource, reqparse
 
 import random
@@ -21,78 +22,9 @@ warnings.filterwarnings('ignore')
 nltk.download('vader_lexicon')
 sent_analysis = SentimentIntensityAnalyzer()
 
-
 app = Flask(__name__)
+api = Api(app)
 
-
-@app.route('/get_stock', methods=['GET'])
-def get():
-    args = request.args
-    start_year = int(args['start_year'])
-    end_year = int(args['end_year'])
-    start_month = int(args['start_month'])
-    end_month = int(args['end_month'])
-    start_day = int(args['start_day'])
-    end_day = int(args['end_day'])
-    ticker = args['ticker']
-
-    sentiment_crawler = SentimentCrawler(start_year=start_year, end_year=end_year,
-                                         start_month=start_month, end_month=end_month,
-                                         start_day=start_day, end_day=end_day,
-                                         ticker=str(ticker),
-                                         path_to_save_csv='~/')
-    sentiment = sentiment_crawler.sentiment_dataframe_creation()
-
-    new_data = RealTimeApi(symbol=ticker)
-    new_stock_data = new_data.create_real_time_stock_dataframe()
-
-    combine = CombineSentimentAndRealTimeData(sentiment_data=sentiment, stock_data=new_stock_data)
-    combined_data_set = combine.combine_data()
-    combined_data_set = combined_data_set.to_json(date_format='iso')
-
-    convert_back = json.loads(combined_data_set)
-    new_df = pd.DataFrame.from_dict(convert_back, orient="columns")
-    new_df['Date'] = [datetime.strptime(date[0:10],'%Y-%m-%d').date() for date in new_df['Date']]
-
-    new_stock_data = new_df
-    print(new_df)
-    return combined_data_set
-
-
-# root
-@app.route("/")
-def index():
-    """
-    this is a root dir of my server
-    :return: str
-    """
-    return "This is root!!!!"
-
-
-# GET
-@app.route('/users/<user>')
-def hello_user(user):
-    """
-    this serves as a demo purpose
-    :param user:
-    :return: str
-    """
-    return "Hello %s!" % user
-
-
-# POST
-@app.route('/api/post_some_data', methods=['POST'])
-def get_text_prediction():
-    """
-    predicts requested text whether it is ham or spam
-    :return: json
-    """
-    json = request.get_json()
-    print(json)
-    if len(json['text']) == 0:
-        return jsonify({'error': 'invalid input'})
-
-    return jsonify({'you sent this': json['text']})
 
 class SentimentCrawler(object):
 
@@ -712,6 +644,52 @@ class CombineSentimentAndRealTimeData(object):
         return merge_data
 
 
+class GetStock(Resource):
+
+    def __init__(self):
+        self.start_year = None
+        self.end_year = None
+        self.start_month = None
+        self.end_month = None
+        self.start_day = None
+        self.end_day = None
+        self.new_stock_data = None
+        self.ticker = None
+
+    @app.route('/get_stock', methods=['GET'])
+    def get(self):
+        args = request.args
+        start_year = int(args['start_year'])
+        end_year = int(args['end_year'])
+        start_month = int(args['start_month'])
+        end_month = int(args['end_month'])
+        start_day = int(args['start_day'])
+        end_day = int(args['end_day'])
+        ticker = args['ticker']
+
+        sentiment_crawler = SentimentCrawler(start_year=start_year, end_year=end_year,
+                                             start_month=start_month, end_month=end_month,
+                                             start_day=start_day, end_day=end_day,
+                                             ticker=str(ticker),
+                                             path_to_save_csv='~/')
+        sentiment = sentiment_crawler.sentiment_dataframe_creation()
+
+        new_data = RealTimeApi(symbol=ticker)
+        new_stock_data = new_data.create_real_time_stock_dataframe()
+
+        combine = CombineSentimentAndRealTimeData(sentiment_data=sentiment, stock_data=new_stock_data)
+        combined_data_set = combine.combine_data()
+        combined_data_set = combined_data_set.to_json(date_format='iso')
+
+        convert_back = json.loads(combined_data_set)
+        new_df = pd.DataFrame.from_dict(convert_back, orient="columns")
+        new_df['Date'] = [datetime.strptime(date[0:10],'%Y-%m-%d').date() for date in new_df['Date']]
+
+        self.new_stock_data = new_df
+        print(self.new_df)
+        return combined_data_set
+
+
 if __name__ == '__main__':
-    #app.add_resource(GetStock, '/get_stock', endpoint='get_stock')
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    api.add_resource(GetStock, '/get_stock', endpoint='get_stock')
+    app.run(debug=True)
