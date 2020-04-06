@@ -39,6 +39,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/edit_text_rel_layout"
+        android:id="@+id/trade_button"
         android:layout_marginTop="0dp"
         android:layout_centerInParent="true"
         android:text="@string/trade_button" />

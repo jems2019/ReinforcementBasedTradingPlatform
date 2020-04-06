@@ -6,3 +6,4 @@ nltk==3.4.5
 requests==2.23.0
 six==1.14
 pandas==1.0.3
+firebase-admin==4.0.1

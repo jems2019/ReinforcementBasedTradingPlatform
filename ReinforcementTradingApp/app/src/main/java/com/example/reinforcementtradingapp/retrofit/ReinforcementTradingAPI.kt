@@ -19,6 +19,10 @@ class ReinforcementTradingAPI {
         @Headers("Content-type: application/json")
         @POST("/api/post_some_data")
         fun getVectors(@Body body: JsonObject): Call<ResponseBody>
+
+        @Headers("Content-type: application/json")
+        @POST("/api/create_transaction")
+        fun createTransaction(@Body body: JsonObject): Call<ResponseBody>
     }
 
     companion object {

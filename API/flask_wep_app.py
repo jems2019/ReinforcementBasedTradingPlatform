@@ -17,9 +17,19 @@ from alpha_vantage.timeseries import TimeSeries
 from alpha_vantage.techindicators import TechIndicators
 from alpha_vantage.sectorperformance import SectorPerformances
 
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
+
 warnings.filterwarnings('ignore')
 nltk.download('vader_lexicon')
 sent_analysis = SentimentIntensityAnalyzer()
+
+#setup Firestore DB
+# Use a service account
+cred = credentials.Certificate('key.json')
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
 
 app = Flask(__name__)
@@ -68,6 +78,21 @@ def index():
     """
     return "This is root!!!!"
 
+@app.route('/api/create_transaction', methods=['POST'])
+def create_transaction(userId):
+    json = request.get_json()
+    print(json)
+    db.collection("transactions").add(
+        {
+            u'userId': json['userId'],
+            u'stockTicker': json['stockTicker'],
+            u'amount': json['amount'],
+            u'loss': json['percentLoss'],
+            u'sharesHeld': u'200',
+            u'timestamp': firestore.SERVER_TIMESTAMP
+        }
+    )
+    return jsonify({'you sent this': json['userId']})
 
 # GET
 @app.route('/users/<user>')
