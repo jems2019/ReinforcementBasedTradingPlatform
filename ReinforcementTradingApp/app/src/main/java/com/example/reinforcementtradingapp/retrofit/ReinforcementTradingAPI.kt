@@ -27,7 +27,7 @@ class ReinforcementTradingAPI {
 
     companion object {
         private val retrofit = Retrofit.Builder()
-                .baseUrl("http://192.168.0.14:5000")
+                .baseUrl("http://10.0.2.2:5000")
                 .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
                 .build()
 

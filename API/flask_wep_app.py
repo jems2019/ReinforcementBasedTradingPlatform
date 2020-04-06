@@ -79,20 +79,20 @@ def index():
     return "This is root!!!!"
 
 @app.route('/api/create_transaction', methods=['POST'])
-def create_transaction(userId):
+def create_transaction():
     json = request.get_json()
     print(json)
     db.collection("transactions").add(
         {
-            u'userId': json['userId'],
-            u'stockTicker': json['stockTicker'],
-            u'amount': json['amount'],
-            u'loss': json['percentLoss'],
+            # u'userId': json['userId'],
+            # u'stockTicker': json['stockTicker'],
+            # u'amount': json['amount'],
+            # u'loss': json['percentLoss'],
             u'sharesHeld': u'200',
             u'timestamp': firestore.SERVER_TIMESTAMP
         }
     )
-    return jsonify({'you sent this': json['userId']})
+    return jsonify({'you sent this': ''})
 
 # GET
 @app.route('/users/<user>')
@@ -739,4 +739,4 @@ class CombineSentimentAndRealTimeData(object):
 
 if __name__ == '__main__':
     #app.add_resource(GetStock, '/get_stock', endpoint='get_stock')
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)
