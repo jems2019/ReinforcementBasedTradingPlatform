@@ -1,7 +1,10 @@
 package com.example.reinforcementtradingapp.retrofit
 
+import com.example.reinforcementtradingapp.models.UserPortfolioData
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
+import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
+import io.reactivex.Single
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Retrofit
@@ -23,12 +26,19 @@ class ReinforcementTradingAPI {
         @Headers("Content-type: application/json")
         @POST("/api/create_transaction")
         fun createTransaction(@Body body: JsonObject): Call<ResponseBody>
+
+        @GET("/api/check_user_exists/{userId}")
+        fun checkIfUserExists(@Path("userId") userId: String): Single<ResponseBody>
+
+        @GET("/api/get_portfolio_data/{userId}")
+        fun getPortfolioData(@Path("userId") userId: String): Single<UserPortfolioData>
     }
 
     companion object {
         private val retrofit = Retrofit.Builder()
                 .baseUrl("http://10.0.2.2:5000")
                 .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()
 
         var service = retrofit.create(APIService::class.java)

@@ -3,8 +3,10 @@ package com.example.reinforcementtradingapp
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import androidx.annotation.MainThread
 import androidx.appcompat.app.AppCompatActivity
 import com.example.reinforcementtradingapp.dashboard.StocksMainDashboardActivity
+import com.example.reinforcementtradingapp.retrofit.ReinforcementTradingAPI
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignIn.*
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -14,13 +16,18 @@ import com.google.android.gms.common.SignInButton
 import com.google.android.gms.common.api.ApiException
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.sign_in_layout.*
+import java.util.logging.Logger
 
 class SignInActivity : AppCompatActivity() {
 
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var auth: FirebaseAuth
+    private val compositeDisposable: CompositeDisposable = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,16 +82,13 @@ class SignInActivity : AppCompatActivity() {
 
     private fun firebaseAuthWithGoogle(acct: GoogleSignInAccount) {
         Log.d(TAG, "firebaseAuthWithGoogle:" + acct.id!!)
-
         val credential = GoogleAuthProvider.getCredential(acct.idToken, null)
         auth.signInWithCredential(credential)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
                     Log.d(TAG, "signInWithCredential:success")
-                    val user = auth.currentUser
-                    finish()
-                    startActivity(Intent(this, StocksMainDashboardActivity::class.java))
+                    checkIfUserExistsSubscription(auth.currentUser)
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w(TAG, "signInWithCredential:failure", task.exception)
@@ -92,6 +96,23 @@ class SignInActivity : AppCompatActivity() {
                 }
 
             }
+    }
+
+    private fun checkIfUserExistsSubscription(currentUser: FirebaseUser?) {
+        currentUser?.uid?.let {
+            compositeDisposable.add(ReinforcementTradingAPI.service.checkIfUserExists(it)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                    {
+                        val intent = Intent(this, StocksMainDashboardActivity::class.java)
+                        intent.putExtra("current_user", currentUser)
+                        startActivity(intent)
+                    }, { throwable: Throwable ->
+                        Log.e(TAG, throwable.toString())
+                    }
+                )
+            )
+        }
     }
 
 
