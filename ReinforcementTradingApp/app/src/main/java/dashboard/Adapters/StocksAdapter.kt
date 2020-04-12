@@ -1,4 +1,4 @@
-package com.example.reinforcementtradingapp.dashboard
+package com.example.reinforcementtradingapp.dashboard.Adapters
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -13,7 +13,9 @@ import kotlinx.android.synthetic.main.stocks_row.view.*
 class StocksAdapter(val stocks: ArrayList<Stock>, val context: Context) :
     RecyclerView.Adapter<StocksAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(LayoutInflater.from(context).inflate(R.layout.stocks_row, parent, false))
+        return ViewHolder(
+            LayoutInflater.from(context).inflate(R.layout.stocks_row, parent, false)
+        )
     }
 
     override fun getItemCount(): Int {
@@ -25,7 +27,7 @@ class StocksAdapter(val stocks: ArrayList<Stock>, val context: Context) :
         holder.numShares.text = stocks.get(position).totalShares.toString()
     }
 
-    open class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+   class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val stockTicker: TextView = view.portfolio_stock_ticker
         val numShares: TextView = view.portfolio_num_shares
     }
