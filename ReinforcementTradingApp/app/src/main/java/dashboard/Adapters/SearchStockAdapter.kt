@@ -39,8 +39,8 @@ class SearchStockAdapter(private val context: Context, private var stocks: Array
         return object : Filter() {
             override fun performFiltering(constraint: CharSequence?): FilterResults {
                 val charSearch = constraint.toString()
-                if(charSearch.isEmpty()) {
-                    stocksFilterList = stocks
+                stocksFilterList = if(charSearch.isEmpty()) {
+                    stocks
                 } else {
                     val results = ArrayList<String>()
                     for(stock in stocks) {
@@ -48,7 +48,7 @@ class SearchStockAdapter(private val context: Context, private var stocks: Array
                             results.add(stock)
                         }
                     }
-                    stocksFilterList = results
+                    results
                 }
                 val filterResults = FilterResults()
                 filterResults.values = stocksFilterList

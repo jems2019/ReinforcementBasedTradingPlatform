@@ -27,8 +27,8 @@ class ReinforcementTradingAPI {
         @POST("/api/create_transaction")
         fun createTransaction(@Body body: JsonObject): Call<ResponseBody>
 
-        @GET("/api/check_user_exists/{userId}")
-        fun checkIfUserExists(@Path("userId") userId: String): Single<ResponseBody>
+        @GET("/api/check_user/{userId}")
+        fun checkIfUserExists(@Path("userId") userId: String): Call<ResponseBody>
 
         @GET("/api/get_portfolio_data/{userId}")
         fun getPortfolioData(@Path("userId") userId: String): Single<UserPortfolioData>

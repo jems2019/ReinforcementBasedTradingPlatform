@@ -10,7 +10,7 @@ import androidx.fragment.app.Fragment
 import com.example.reinforcementtradingapp.R
 import com.example.reinforcementtradingapp.retrofit.ReinforcementTradingAPI
 import com.google.firebase.auth.FirebaseAuth
-import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.add_stock_fragment.*
 import okhttp3.ResponseBody
 import retrofit2.Call

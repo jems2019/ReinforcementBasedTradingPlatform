@@ -1,3 +1,4 @@
+import google
 
 from flask import Flask, request, jsonify
 # import future
@@ -25,12 +26,11 @@ warnings.filterwarnings('ignore')
 nltk.download('vader_lexicon')
 sent_analysis = SentimentIntensityAnalyzer()
 
-#setup Firestore DB
+# setup Firestore DB
 # Use a service account
 cred = credentials.Certificate('key.json')
 firebase_admin.initialize_app(cred)
 db = firestore.client()
-
 
 app = Flask(__name__)
 
@@ -62,7 +62,7 @@ def get():
 
     convert_back = json.loads(combined_data_set)
     new_df = pd.DataFrame.from_dict(convert_back, orient="columns")
-    new_df['Date'] = [datetime.strptime(date[0:10],'%Y-%m-%d').date() for date in new_df['Date']]
+    new_df['Date'] = [datetime.strptime(date[0:10], '%Y-%m-%d').date() for date in new_df['Date']]
 
     new_stock_data = new_df
     print(new_df)
@@ -77,6 +77,51 @@ def index():
     :return: str
     """
     return "This is root!!!!"
+
+
+@app.route('/api/check_user/<userId>', methods=["GET"])
+def check_user_exists(userId):
+    doc_ref = db.collection(u'users').document(userId)
+    response = {'found': False}
+    try:
+        doc = doc_ref.get()
+        if doc.exists:
+            response['found'] = True
+            response.update(doc.to_dict())
+            print(u'Document data: {}'.format(doc.to_dict()))
+        else:
+            response['found'] = False
+            doc_ref.set({
+                u'stocks': []
+            })
+            print(u'No such document!')
+    except google.cloud.exceptions.NotFound:
+        response['found'] = False
+        doc_ref.set({
+            u'stocks': []
+        })
+        print(u'No such document!')
+    return jsonify(response)
+
+
+@app.route('/api/get_portfolio_data/<userId>', methods=["GET"])
+def get_portfolio_data(userId):
+    response = {'found': False}
+    #stocks collection ref
+    stocks_ref = db.collection("stocks")
+    #Create stock query to query by userId
+    query = stocks_ref.where(u'userId', '==', userId)
+    try:
+        docs = query.get()
+        for doc in docs:
+            response[doc.id] = doc.to_dict()
+            print(u'{} => {}'.format(doc.id, doc.to_dict()))
+    except google.cloud.exceptions.NotFound:
+        response['found'] = False
+        print(u'No such document!')
+    return jsonify(response)
+
+
 
 @app.route('/api/create_transaction', methods=['POST'])
 def create_transaction():
@@ -93,6 +138,7 @@ def create_transaction():
         }
     )
     return jsonify({'you sent this': ''})
+
 
 # GET
 @app.route('/users/<user>')
@@ -118,6 +164,7 @@ def get_text_prediction():
         return jsonify({'error': 'invalid input'})
 
     return jsonify({'you sent this': json['text']})
+
 
 class SentimentCrawler(object):
 
@@ -154,7 +201,8 @@ class SentimentCrawler(object):
                     iter_ct += 1
                     print("Current Count of iterations: {}".format(str(iter_ct)))
 
-                    url = 'https://www.marketwatch.com/search?q=APPL&m=Keyword&rpp=15&mp=806&bd=true&bd=false&bdv={m}%2F{d}%2F{y}&rs=true'.format(ticker=self.ticker, m=month, d=day, y=year)
+                    url = 'https://www.marketwatch.com/search?q=APPL&m=Keyword&rpp=15&mp=806&bd=true&bd=false&bdv={m}%2F{d}%2F{y}&rs=true'.format(
+                        ticker=self.ticker, m=month, d=day, y=year)
                     print(url)
 
                     # url = 'https://www.marketwatch.com/search?q=AAPL&m=Keyword&rpp=15&mp=2005&bd=true&bd=false&bdv=1%2F3%2F2020&rs=true'
@@ -199,7 +247,7 @@ class SentimentCrawler(object):
         :param date: Date returned from the crawler
         :return: Clean date in YYYY-MM-DD
         """
-        month_base_string = {'Dec.': 'Dec', 'Jan.': 'Jan', 'Feb.':'Feb', 'March': 'Mar', 'April': 'Apr',
+        month_base_string = {'Dec.': 'Dec', 'Jan.': 'Jan', 'Feb.': 'Feb', 'March': 'Mar', 'April': 'Apr',
                              'May': 'May', 'June': 'Jun', 'July': 'Jul', 'Aug.': 'Aug', 'Sept.': 'Sept',
                              'Oct.': 'Oct', 'Nov.': 'Nov'}
 
@@ -738,5 +786,8 @@ class CombineSentimentAndRealTimeData(object):
 
 
 if __name__ == '__main__':
-    #app.add_resource(GetStock, '/get_stock', endpoint='get_stock')
+    # app.add_resource(GetStock, '/get_stock', endpoint='get_stock')
     app.run(host='0.0.0.0', port=5000)
+
+
+

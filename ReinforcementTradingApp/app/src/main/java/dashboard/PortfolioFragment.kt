@@ -32,7 +32,7 @@ class PortfolioFragment : Fragment(){
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         user = savedInstanceState?.getParcelable("current_user")!!
-        userPortfolioData = savedInstanceState?.getParcelable("userProfileData")!!
+        userPortfolioData = savedInstanceState.getParcelable("userProfileData")!!
         getNumberStocksSubscription()
     }
 

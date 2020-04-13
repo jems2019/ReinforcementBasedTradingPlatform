@@ -3,6 +3,7 @@ package com.example.reinforcementtradingapp
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.MainThread
 import androidx.appcompat.app.AppCompatActivity
 import com.example.reinforcementtradingapp.dashboard.StocksMainDashboardActivity
@@ -21,6 +22,10 @@ import com.google.firebase.auth.GoogleAuthProvider
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.sign_in_layout.*
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.util.logging.Logger
 
 class SignInActivity : AppCompatActivity() {
@@ -100,18 +105,22 @@ class SignInActivity : AppCompatActivity() {
 
     private fun checkIfUserExistsSubscription(currentUser: FirebaseUser?) {
         currentUser?.uid?.let {
-            compositeDisposable.add(ReinforcementTradingAPI.service.checkIfUserExists(it)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    {
-                        val intent = Intent(this, StocksMainDashboardActivity::class.java)
-                        intent.putExtra("current_user", currentUser)
-                        startActivity(intent)
-                    }, { throwable: Throwable ->
-                        Log.e(TAG, throwable.toString())
+            ReinforcementTradingAPI
+                .service
+                .checkIfUserExists(it)
+                .enqueue(object : Callback<ResponseBody> {
+                    override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                        println("---TTTT :: POST Throwable EXCEPTION:: " + t.message)
                     }
-                )
-            )
+
+                    override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                        if (response.isSuccessful) {
+                            val intent = Intent(this@SignInActivity, StocksMainDashboardActivity::class.java)
+                            intent.putExtra("current_user", currentUser)
+                            startActivity(intent)
+                        }
+                    }
+                })
         }
     }
 
