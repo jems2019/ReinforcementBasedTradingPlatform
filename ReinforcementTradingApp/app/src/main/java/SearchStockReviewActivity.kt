@@ -1,12 +1,17 @@
 package com.example.reinforcementtradingapp
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
+import com.example.reinforcementtradingapp.dashboard.AddStockFragment
+import com.example.reinforcementtradingapp.dashboard.StocksMainDashboardActivity
 import com.example.reinforcementtradingapp.models.StockInfo
 import com.example.reinforcementtradingapp.retrofit.ReinforcementTradingAPI
+import com.google.firebase.auth.FirebaseAuth
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -24,16 +29,23 @@ class SearchStockReviewActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.search_stock_review_layout)
         stockTicker = intent.getStringExtra("stock_ticker")
-        toolbar_review_stock.setNavigationOnClickListener {
-            onBackPressed()
-        }
         progressBar1.visibility = View.VISIBLE
+        trade_from_search.setOnClickListener {
+            val intent = Intent(this, SearchStockReviewActivity::class.java)
+            intent.putExtra("current_user", FirebaseAuth.getInstance().currentUser)
+            intent.putExtra("fragment_to_load", "AddStock")
+            startActivity(intent)
+        }
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
         getRealTimeDataSubscription(stockTicker)
     }
 
 
     private fun getRealTimeDataSubscription(stockTicker: String) {
         compositeDisposable.add(ReinforcementTradingAPI.service.getRealTimeData(stockTicker.toLowerCase())
+            .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe({stockInfo ->
                 getRealTimeTradeRecommendation(stockTicker, stockInfo)
@@ -46,6 +58,7 @@ class SearchStockReviewActivity : AppCompatActivity() {
 
     private fun getRealTimeTradeRecommendation(stockTicker: String, stockInfo: StockInfo) {
         compositeDisposable.add(ReinforcementTradingAPI.service.getRealTimeAction(stockTicker, stockInfo.date)
+            .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe({tradeAction ->
                 search_review_ticker.text = String.format(resources.getString(R.string.stock_ticker), stockTicker)

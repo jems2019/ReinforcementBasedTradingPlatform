@@ -117,6 +117,7 @@ class SignInActivity : AppCompatActivity() {
                         if (response.isSuccessful) {
                             val intent = Intent(this@SignInActivity, StocksMainDashboardActivity::class.java)
                             intent.putExtra("current_user", currentUser)
+                            intent.putExtra("fragment_to_load", "Portfolio")
                             startActivity(intent)
                         }
                     }
