@@ -146,6 +146,24 @@ class RealTimeApi(object):
 
         return pd.DataFrame(new_stock_data, columns=column_list)
 
+    def get_intra_day_data(self, interval='1min'):
+        """
+        Take the return of the real time stock api call and converts the return into a dataframe
+        :return: Dataframe of new stock data
+        """
+        real_time_data = self.get_time_series_intraday(interval='1min')[0]
+        column_list = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume']
+        new_stock_data = []
+        for sd in real_time_data:
+            date = sd.split(' ')[0]
+            new_stock_data.append((date, real_time_data[sd]['1. open'],
+                                   real_time_data[sd]['2. high'],
+                                   real_time_data[sd]['3. low'],
+                                   real_time_data[sd]['4. close'],
+                                   real_time_data[sd]['5. volume']))
+
+        return pd.DataFrame(new_stock_data, columns=column_list)
+
     def _counter(self):
         """
         Utility function that keeps track of how many API calls are made. Limit is
@@ -155,18 +173,18 @@ class RealTimeApi(object):
         """
         self.counter += 1
         if self.counter <= self.MAX_API_CALL:
-            print('{} API calls have been made. There are {} API calls left for '
-                  + 'the day'.format(self.counter, (self.MAX_API_CALL - self.counter)))
+            string = 'API call has been made'
+            # print(string)
             pass
         else:
-            print('You have reached the limit of the API calls of {} '
-                  + 'for the day.'.format(self.MAX_API_CALL))
+            string = 'You have reached the limit of the API calls. '.format(x=self.MAX_API_CALL)
+            # print(string)
             raise ValueError('Too many API calls have been made today.')
 
     def _get_counter(self):
         return 'Current API call counter is at: {}'.format(self.counter)
 
-    def get_time_series_intraday(self, interval='15min', outputsize='compact',
+    def get_time_series_intraday(self, interval='1min', outputsize='compact',
                                  datatype='json'):
         """
         This API returns intraday time series (timestamp, open, high, low, close,
