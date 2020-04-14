@@ -10,3 +10,4 @@ pandas-datareader==0.8.1
 numpy==1.18.2
 stable-baselines==2.9
 firebase-admin==4.0.1
+tensorflow==1.14
