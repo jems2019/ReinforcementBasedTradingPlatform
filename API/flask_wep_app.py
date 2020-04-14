@@ -4,6 +4,7 @@ warnings.filterwarnings('ignore')
 from RLModel import *
 from LSTMStockPrediction import *
 from SentimentCrawler import *
+from API_crawler import RealTimeApi
 
 import google
 
@@ -89,6 +90,17 @@ def get_rl_action():
 
 
     return jsonify(response)
+
+@app.route('/api/get_id_data/', methods=["GET"])
+def get_rt_data():
+    # Gets intra day stock data for given ticker symbol. It is 1 min data increments.
+    print('Request received. Getting intra day stock data ')
+    ticker = str(request.args.get('ticker'))
+    data = RealTimeApi(symbol=ticker)
+    rt_data = data.get_intra_day_data(interval='1min')
+    # get latest stock price in 1 min intervals
+    rt_data = rt_data.iloc[:1].to_json()
+    return rt_data
 
 
 @app.route('/api/check_user/<userId>', methods=["GET"])
