@@ -25,14 +25,14 @@ class PortfolioFragment : Fragment(){
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
 
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-        inflater.inflate(R.layout.portfolio_fragment, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View?{
+        user = activity?.intent?.getParcelableExtra("current_user")!!
+        return inflater.inflate(R.layout.portfolio_fragment, container, false)
+    }
 
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        user = savedInstanceState?.getParcelable("current_user")!!
-        userPortfolioData = savedInstanceState.getParcelable("userProfileData")!!
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         getNumberStocksSubscription()
     }
 
@@ -49,7 +49,7 @@ class PortfolioFragment : Fragment(){
                     StocksAdapter(
                         stocks,
                         context!!
-                    )
+                    ) {}
 
             },{ throwable: Throwable ->
                 Log.e("PortfolioFragment", throwable.toString())

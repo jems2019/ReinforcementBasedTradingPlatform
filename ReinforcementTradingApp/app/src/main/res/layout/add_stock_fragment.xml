@@ -7,8 +7,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/add_stock"
-        android:id="@+id/add_stock_text"
-        android:textSize="32sp"/>
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="40sp"
+        android:textStyle="bold"
+        android:layout_margin="10dp"/>
 
     <RelativeLayout
         android:layout_width="wrap_content"

@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.reinforcementtradingapp.R
 import kotlinx.android.synthetic.main.search_stock_row.view.*
 
-class SearchStockAdapter(private val context: Context, private var stocks: ArrayList<String>) : RecyclerView.Adapter<SearchStockAdapter.ViewHolder>(), Filterable {
+class SearchStockAdapter(private val context: Context, private var stocks: ArrayList<String>, private val listener: (String) -> Unit) : RecyclerView.Adapter<SearchStockAdapter.ViewHolder>(), Filterable {
 
     var stocksFilterList = ArrayList<String>()
 
@@ -29,6 +29,9 @@ class SearchStockAdapter(private val context: Context, private var stocks: Array
 
     override fun onBindViewHolder(holder: SearchStockAdapter.ViewHolder, position: Int) {
         holder?.search?.text =  stocksFilterList[position]
+        holder.itemView.setOnClickListener {
+            listener.invoke(stocksFilterList[position])
+        }
     }
 
     class ViewHolder(inflate: View?) : RecyclerView.ViewHolder(inflate!!) {

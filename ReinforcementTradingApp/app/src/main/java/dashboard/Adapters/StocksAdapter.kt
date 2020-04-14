@@ -10,7 +10,7 @@ import com.example.reinforcementtradingapp.R
 import com.example.reinforcementtradingapp.models.Stock
 import kotlinx.android.synthetic.main.stocks_row.view.*
 
-class StocksAdapter(val stocks: ArrayList<Stock>, val context: Context) :
+class StocksAdapter(val stocks: ArrayList<Stock>, val context: Context, val listener: (Stock) -> Unit) :
     RecyclerView.Adapter<StocksAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(
@@ -23,12 +23,16 @@ class StocksAdapter(val stocks: ArrayList<Stock>, val context: Context) :
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.stockTicker.text = stocks.get(position).stockTicker
-        holder.numShares.text = stocks.get(position).totalShares.toString()
+        holder.stockTicker.text = stocks[position].stockTicker
+        holder.numShares.text = stocks[position].totalShares.toString()
+        holder.itemView.setOnClickListener {
+            listener.invoke(stocks[position])
+        }
     }
 
    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val stockTicker: TextView = view.portfolio_stock_ticker
         val numShares: TextView = view.portfolio_num_shares
+
     }
 }

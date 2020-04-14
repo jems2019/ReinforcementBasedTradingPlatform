@@ -1,28 +1,31 @@
 package com.example.reinforcementtradingapp.dashboard
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.reinforcementtradingapp.R
+import com.example.reinforcementtradingapp.SearchStockReviewActivity
 import com.example.reinforcementtradingapp.dashboard.Adapters.SearchStockAdapter
 import kotlinx.android.synthetic.main.search_fragment.*
 
 class SearchFragment : Fragment() {
 
     private lateinit var linearLayoutManager: LinearLayoutManager
-    private lateinit var searchStockList: ArrayList<String>
+    private var searchStockList: ArrayList<String> = ArrayList()
     private lateinit var adapter: SearchStockAdapter
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
         inflater.inflate(R.layout.search_fragment, container, false)
 
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         linearLayoutManager = LinearLayoutManager(context)
         searchStockList.add("AAPL")
         searchStockList.add("AMZN")
@@ -31,7 +34,13 @@ class SearchFragment : Fragment() {
 
         search_results_recycler_view.layoutManager = linearLayoutManager
         adapter = SearchStockAdapter(context!!, searchStockList)
+        { stockTicker->
+            val intent = Intent(context, SearchStockReviewActivity::class.java)
+            intent.putExtra("stock_ticker", stockTicker)
+            startActivity(intent)
+        }
         search_results_recycler_view.adapter = adapter
+        search_results_recycler_view.addItemDecoration(DividerItemDecoration(context, LinearLayoutManager.HORIZONTAL))
         search_stock.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
             override fun onQueryTextSubmit(query: String?): Boolean {
                 TODO("Not yet implemented")
