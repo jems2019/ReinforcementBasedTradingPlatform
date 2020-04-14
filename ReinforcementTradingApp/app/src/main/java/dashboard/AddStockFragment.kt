@@ -29,28 +29,28 @@ class AddStockFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        trade_button.setOnClickListener {
-            createTransaction(enter_stock_edit_text.toString(),
-                enter_amount_edit_text.toString(), enter_percent_loss_edit_text.toString())
-        }
+//        trade_button.setOnClickListener {
+//            createTransaction(enter_stock_edit_text.toString(),
+//                enter_amount_edit_text.toString(), enter_percent_loss_edit_text.toString())
+//        }
     }
 
-    private fun createTransaction(ticker: String, amount: String, loss: String) {
-        ReinforcementTradingAPI
-            .service
-            .createTransaction(presenter.createTransaction(ticker, amount, loss))
-            .enqueue(object : Callback<ResponseBody> {
-                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                    println("---TTTT :: POST Throwable EXCEPTION:: " + t.message)
-                }
-
-                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                    if (response.isSuccessful) {
-                        val msg = response.body()?.string()
-                        println("---TTTT :: POST msg from server :: " + msg)
-                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                    }
-                }
-            })
-    }
+//    private fun createTransaction(ticker: String, amount: String, loss: String) {
+//        ReinforcementTradingAPI
+//            .service
+//            .createTransaction(presenter.createTransaction(ticker, amount, loss))
+//            .enqueue(object : Callback<ResponseBody> {
+//                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+//                    println("---TTTT :: POST Throwable EXCEPTION:: " + t.message)
+//                }
+//
+//                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+//                    if (response.isSuccessful) {
+//                        val msg = response.body()?.string()
+//                        println("---TTTT :: POST msg from server :: " + msg)
+//                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+//                    }
+//                }
+//            })
+//    }
 }

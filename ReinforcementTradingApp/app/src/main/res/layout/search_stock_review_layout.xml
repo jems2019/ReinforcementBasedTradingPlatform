@@ -53,7 +53,7 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/search_review_closer"
+            android:id="@+id/search_review_close"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/stock_close"
@@ -68,6 +68,14 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
+        <TextView
+            android:id="@+id/search_review_recommendation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/stock_recomendation"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
         <Button
             android:id="@+id/trade_from_search"
             android:layout_width="wrap_content"
@@ -75,6 +83,13 @@
             android:layout_gravity="center"
             android:text="@string/trade_button" />
     </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBar1"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"/>
 
 
 </LinearLayout>

@@ -7,23 +7,8 @@ from SentimentCrawler import *
 from API_crawler import RealTimeApi
 
 import google
-
-import tensorflow as tf
-
 from flask import Flask, request, jsonify
-# import future
-from bs4 import BeautifulSoup
-from datetime import datetime
-import requests
-import nltk
-import json
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from flask_restful import Api, Resource, reqparse
-
-import random
 import numpy as np
-import pandas as pd
-
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
@@ -91,16 +76,25 @@ def get_rl_action():
 
     return jsonify(response)
 
+
 @app.route('/api/get_id_data/', methods=["GET"])
 def get_rt_data():
+    dict = {}
     # Gets intra day stock data for given ticker symbol. It is 1 min data increments.
     print('Request received. Getting intra day stock data ')
     ticker = str(request.args.get('ticker'))
     data = RealTimeApi(symbol=ticker)
     rt_data = data.get_intra_day_data(interval='1min')
     # get latest stock price in 1 min intervals
-    rt_data = rt_data.iloc[:1].to_json()
-    return rt_data
+    # rt_data = rt_data.iloc[:1].to_json()
+    dict['date'] = rt_data.iloc[0]["Date"]
+    dict['open'] = rt_data.iloc[0]["Open"]
+    dict['high'] = rt_data.iloc[0]["High"]
+    dict['low'] = rt_data.iloc[0]["Low"]
+    dict['close'] = rt_data.iloc[0]["Close"]
+    dict['volume'] = rt_data.iloc[0]["Volume"]
+    print(dict)
+    return jsonify(dict)
 
 
 @app.route('/api/check_user/<userId>', methods=["GET"])
@@ -152,17 +146,64 @@ def get_portfolio_data(userId):
 def create_transaction():
     json = request.get_json()
     print(json)
-    db.collection("transactions").add(
+    #Add transaction to the trasanctions table
+    doc_ref = db.collection("transactions").document()
+    doc_ref.set(
         {
-            # u'userId': json['userId'],
-            # u'stockTicker': json['stockTicker'],
-            # u'amount': json['amount'],
-            # u'loss': json['percentLoss'],
+            u'userId': json['userId'],
+            u'stockTicker': json['stockTicker'],
+            u'amount': json['amount'],
             u'sharesHeld': u'200',
             u'timestamp': firestore.SERVER_TIMESTAMP
         }
     )
-    return jsonify({'you sent this': ''})
+    doc_id = doc_ref.id
+    print(doc_id)
+
+    resp = {}
+    #update Transaction info for stock
+    stocks_ref = db.collection("stocks")
+    query = stocks_ref.where(u'userId', '==', json['userId']).where(u'stockTicker', '==', json['stockTicker'])
+    try:
+        doc_ref = query.get()
+        if doc_ref.exists:
+            dict_fields=doc_ref.to_dict()
+            doc_ref.update(
+                {
+                    u'cumulativeBalance': json['amount'] + dict_fields['cumulativeBalance'],
+                    u'loss': (json['percentLoss'] + dict_fields['loss'])/2,
+                    u'totalShares': json['sharesHeld'] + dict_fields['totalShares'],
+                    u'transaction': firestore.ArrayUnion(doc_id)
+                }
+            )
+            resp['transaction_status'] = 'Updated'
+        else:
+            doc_ref.set(
+                {
+                    u'userId': json['userId'],
+                    u'initialBalance': json['amount'],
+                    u'cumulativeBalance': json['amount'],
+                    u'loss': json['percentLoss'],
+                    u'totalShares': json['sharesHeld'],
+                    u'transaction': [doc_id]
+                }
+            )
+            resp['transaction_status'] = 'Created'
+    except google.cloud.exceptions.NotFound:
+        print(u'No such documents!')
+        doc_ref.set(
+            {
+                u'userId': json['userId'],
+                u'initialBalance': json['amount'],
+                u'cumulativeBalance': json['amount'],
+                u'loss': json['percentLoss'],
+                u'totalShares': json['sharesHeld'],
+                u'transaction': [doc_id]
+            }
+        )
+        resp['transaction_status'] = 'Created'
+        resp['docId'] = doc_id
+    return jsonify(resp)
 
 
 # GET
@@ -190,7 +231,8 @@ def get_text_prediction():
 
     return jsonify({'you sent this': json['text']})
 
-
+def automate_trade():
+    return
 
 if __name__ == '__main__':
     # app.add_resource(GetStock, '/get_stock', endpoint='get_stock')

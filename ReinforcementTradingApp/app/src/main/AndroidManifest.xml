@@ -22,6 +22,7 @@
         <activity android:name=".MainActivity">
         </activity>
         <activity android:name=".dashboard.StocksMainDashboardActivity"/>
+        <activity android:name=".SearchStockReviewActivity"/>
     </application>
 
 

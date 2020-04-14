@@ -14,4 +14,5 @@
     <string name="stock_high">High: %s</string>
     <string name="stock_close">Close: %s</string>
     <string name="stock_volume">Volume: %s</string>
+    <string name="stock_recomendation">Recommendation: %s</string>
 </resources>

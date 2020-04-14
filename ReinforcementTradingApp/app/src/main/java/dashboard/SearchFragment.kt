@@ -2,6 +2,7 @@ package com.example.reinforcementtradingapp.dashboard
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,7 +13,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.reinforcementtradingapp.R
 import com.example.reinforcementtradingapp.SearchStockReviewActivity
 import com.example.reinforcementtradingapp.dashboard.Adapters.SearchStockAdapter
+import com.example.reinforcementtradingapp.retrofit.ReinforcementTradingAPI
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.search_fragment.*
+import kotlinx.android.synthetic.main.search_stock_review_layout.*
 
 class SearchFragment : Fragment() {
 

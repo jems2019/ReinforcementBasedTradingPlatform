@@ -1,16 +1,20 @@
 package com.example.reinforcementtradingapp.retrofit
 
+
+import com.example.reinforcementtradingapp.models.StockInfo
+import com.example.reinforcementtradingapp.models.TradeAction
 import com.example.reinforcementtradingapp.models.UserPortfolioData
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import io.reactivex.Single
+import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
-
+import java.util.concurrent.TimeUnit
 
 
 class ReinforcementTradingAPI {
@@ -25,18 +29,29 @@ class ReinforcementTradingAPI {
 
         @Headers("Content-type: application/json")
         @POST("/api/create_transaction")
-        fun createTransaction(@Body body: JsonObject): Call<ResponseBody>
+        fun createTransaction(@Body body: JsonObject): Single<ResponseBody>
 
         @GET("/api/check_user/{userId}")
         fun checkIfUserExists(@Path("userId") userId: String): Call<ResponseBody>
 
         @GET("/api/get_portfolio_data/{userId}")
         fun getPortfolioData(@Path("userId") userId: String): Single<UserPortfolioData>
+
+        @GET("/api/get_id_data/")
+        fun getRealTimeData(@Query("ticker") ticker: String): Single<StockInfo>
+
+        @GET("/api/get_rl_action/")
+        fun getRealTimeAction(@Query("ticker") ticker: String,
+                              @Query ("date") date: String): Single<TradeAction>
     }
 
     companion object {
+        var client = OkHttpClient.Builder()
+            .connectTimeout(100, TimeUnit.SECONDS)
+            .readTimeout(100, TimeUnit.SECONDS).build()
+
         private val retrofit = Retrofit.Builder()
-                .baseUrl("http://10.0.2.2:5000")
+                .baseUrl("http://10.0.2.2:5000").client(client)
                 .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()
