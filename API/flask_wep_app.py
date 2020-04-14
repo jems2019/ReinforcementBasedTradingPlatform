@@ -113,12 +113,13 @@ def get_portfolio_data(userId):
     query = stocks_ref.where(u'userId', '==', userId)
     try:
         docs = query.get()
+        response['found'] = True
         for doc in docs:
             response[doc.id] = doc.to_dict()
             print(u'{} => {}'.format(doc.id, doc.to_dict()))
     except google.cloud.exceptions.NotFound:
         response['found'] = False
-        print(u'No such document!')
+        print(u'No such documents!')
     return jsonify(response)
 
 
