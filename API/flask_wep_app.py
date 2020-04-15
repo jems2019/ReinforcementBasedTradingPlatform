@@ -130,16 +130,20 @@ def get_portfolio_data(userId):
     stocks_ref = db.collection("stocks")
     # Create stock query to query by userId
     query = stocks_ref.where(u'userId', '==', userId)
+    temp = {}
     try:
         docs = query.get()
         response['found'] = True
         for doc in docs:
-            response[doc.id] = doc.to_dict()
+            temp[doc.id] = doc.to_dict()
             print(u'{} => {}'.format(doc.id, doc.to_dict()))
+        response['stocks'] = temp
     except google.cloud.exceptions.NotFound:
         response['found'] = False
+        response['stocks'] = temp
         print(u'No such documents!')
-    return jsonify(response)
+    print(response)
+    return json.dumps(response)
 
 
 @app.route('/api/create_transaction', methods=['POST'])
@@ -185,12 +189,13 @@ def create_transaction():
                 doc_ref = db.collection("stocks").document()
                 doc_ref.set(
                     {
+                        u'stockTicker': json['stockTicker'],
                         u'userId': json['userId'],
                         u'initialBalance': json['amount'],
                         u'cumulativeBalance': json['amount'],
                         u'loss': json['percentLoss'],
                         u'totalShares': 200,
-                        u'transaction': [doc_id]
+                        u'transactions': [doc_id]
                     }
                 )
                 resp['transaction_status'] = 'Created'
