@@ -41,7 +41,6 @@ class SearchFragment : Fragment() {
         { stockTicker->
             val intent = Intent(context, SearchStockReviewActivity::class.java)
             intent.putExtra("stock_ticker", stockTicker)
-            activity?.finish()
             startActivity(intent)
         }
         search_results_recycler_view.adapter = adapter

@@ -1,9 +1,7 @@
 package com.example.reinforcementtradingapp.retrofit
 
 
-import com.example.reinforcementtradingapp.models.StockInfo
-import com.example.reinforcementtradingapp.models.TradeAction
-import com.example.reinforcementtradingapp.models.UserPortfolioData
+import com.example.reinforcementtradingapp.models.*
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
@@ -29,7 +27,7 @@ class ReinforcementTradingAPI {
 
         @Headers("Content-type: application/json")
         @POST("/api/create_transaction")
-        fun createTransaction(@Body body: JsonObject): Single<ResponseBody>
+        fun createTransaction(@Body transactionBody: TransactionBody): Single<Transaction>
 
         @GET("/api/check_user/{userId}")
         fun checkIfUserExists(@Path("userId") userId: String): Call<ResponseBody>

@@ -17,7 +17,7 @@ class StocksMainDashboardActivity : AppCompatActivity() {
         setContentView(R.layout.stocks_dashboard)
         fragmentName = intent.getStringExtra("fragment_to_load")
         if (savedInstanceState == null) {
-            val fragment = if(fragmentName == "AddStock")
+            val fragment = if(fragmentName.equals("AddStock"))
                 AddStockFragment()
             else
                 PortfolioFragment()
@@ -26,7 +26,6 @@ class StocksMainDashboardActivity : AppCompatActivity() {
         }
 
         bottomNavigationView= findViewById(R.id.bottom_navigation)
-
         bottomNavigationView.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
 
     }

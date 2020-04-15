@@ -17,24 +17,33 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:id="@+id/edit_text_rel_layout"
-        android:padding="15dp">
+        android:padding="15dp"
+        android:layout_margin="20dp">
         <EditText
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/enter_stock"
-            android:id="@+id/enter_stock_edit_text"/>
+            android:hint="@string/enter_stock"
+            android:textStyle="bold"
+            android:id="@+id/enter_stock_edit_text"
+            android:lines="1"/>
         <EditText
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/enter_amount"
+            android:hint="@string/enter_amount"
+            android:textStyle="bold"
             android:layout_below="@+id/enter_stock_edit_text"
-            android:id="@+id/enter_amount_edit_text"/>
+            android:id="@+id/enter_amount_edit_text"
+            android:inputType="number"
+            android:lines="1"/>
         <EditText
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/enter_percent_loss"
+            android:hint="@string/enter_percent_loss"
+            android:textStyle="bold"
             android:layout_below="@id/enter_amount_edit_text"
-            android:id="@+id/enter_percent_loss_edit_text"/>
+            android:id="@+id/enter_percent_loss_edit_text"
+            android:inputType="number"
+            android:lines="1"/>
     </RelativeLayout>
 
     <Button
@@ -44,6 +53,9 @@
         android:id="@+id/trade_button"
         android:layout_marginTop="0dp"
         android:layout_centerInParent="true"
+        android:background="@color/colorPrimary"
+        android:textColor="@color/white"
+        android:textStyle="bold"
         android:text="@string/trade_button" />
 
 </RelativeLayout>

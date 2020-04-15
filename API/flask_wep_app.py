@@ -1,6 +1,7 @@
 import warnings
+
 warnings.filterwarnings('ignore')
-#load model stuff
+# load model stuff
 from RLModel import *
 from LSTMStockPrediction import *
 from SentimentCrawler import *
@@ -13,8 +14,7 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 
-
-# print('loading lstm...')    
+# print('loading lstm...')
 # tf_model = load_model('./models/LSTM_model_4.h5')
 # lstm_model = LSTMStockPrediction(tf_model)
 
@@ -24,7 +24,7 @@ ppo2_model = PPO2.load('./models/aapl_trained_model_sent_real_pred.zip')
 print('loading sentiment...')
 sent_crawler = SentimentCrawler()
 
-#create RL model with other pieces
+# create RL model with other pieces
 # rl_model = RLModel(ppo2_model, lstm_model, sent_crawler)
 
 # rl_model.get_action('AAPL', '2020-01-01')
@@ -38,6 +38,7 @@ db = firestore.client()
 
 app = Flask(__name__)
 
+
 # root
 @app.route("/")
 def index():
@@ -47,6 +48,7 @@ def index():
     """
     return "This is root!!!!"
 
+
 # get prediction from model
 @app.route('/api/get_rl_action/', methods=["GET"])
 def get_rl_action():
@@ -55,7 +57,7 @@ def get_rl_action():
     date = str(request.args.get('date'))
 
     # need to load lstm in method since tf doesnt like loading outside
-    print('loading lstm...')    
+    print('loading lstm...')
     tf_model = load_model('./models/LSTM_model_4.h5')
     lstm_model = LSTMStockPrediction(tf_model)
 
@@ -67,12 +69,11 @@ def get_rl_action():
     print(rl_action)
 
     action_type = np.argmax(rl_action[0:2])
-    action_dict = {0:'buy', 1:'sell', 2:'hold'}
+    action_dict = {0: 'buy', 1: 'sell', 2: 'hold'}
     response = {
         'action': action_dict[action_type],
         'percent': str(rl_action[3])
     }
-
 
     return jsonify(response)
 
@@ -125,9 +126,9 @@ def check_user_exists(userId):
 @app.route('/api/get_portfolio_data/<userId>', methods=["GET"])
 def get_portfolio_data(userId):
     response = {'found': False}
-    #stocks collection ref
+    # stocks collection ref
     stocks_ref = db.collection("stocks")
-    #Create stock query to query by userId
+    # Create stock query to query by userId
     query = stocks_ref.where(u'userId', '==', userId)
     try:
         docs = query.get()
@@ -141,68 +142,75 @@ def get_portfolio_data(userId):
     return jsonify(response)
 
 
-
 @app.route('/api/create_transaction', methods=['POST'])
 def create_transaction():
     json = request.get_json()
-    print(json)
-    #Add transaction to the trasanctions table
-    doc_ref = db.collection("transactions").document()
-    doc_ref.set(
-        {
-            u'userId': json['userId'],
-            u'stockTicker': json['stockTicker'],
-            u'amount': json['amount'],
-            u'sharesHeld': u'200',
-            u'timestamp': firestore.SERVER_TIMESTAMP
-        }
-    )
-    doc_id = doc_ref.id
-    print(doc_id)
-
     resp = {}
-    #update Transaction info for stock
+    doc_ref = db.collection(u'users').document(json['userId'])
     stocks_ref = db.collection("stocks")
-    query = stocks_ref.where(u'userId', '==', json['userId']).where(u'stockTicker', '==', json['stockTicker'])
     try:
-        doc_ref = query.get()
-        if doc_ref.exists:
-            dict_fields=doc_ref.to_dict()
+        # Update User stock info
+        doc = doc_ref.get()
+        if doc.exists:
             doc_ref.update(
                 {
-                    u'cumulativeBalance': json['amount'] + dict_fields['cumulativeBalance'],
-                    u'loss': (json['percentLoss'] + dict_fields['loss'])/2,
-                    u'totalShares': json['sharesHeld'] + dict_fields['totalShares'],
-                    u'transaction': firestore.ArrayUnion(doc_id)
+                    u'stocks': firestore.ArrayUnion([json['stockTicker']])
                 }
             )
-            resp['transaction_status'] = 'Updated'
-        else:
+
+            # Add transaction to the trasanctions table
+            doc_ref = db.collection("transactions").document()
             doc_ref.set(
                 {
                     u'userId': json['userId'],
-                    u'initialBalance': json['amount'],
-                    u'cumulativeBalance': json['amount'],
-                    u'loss': json['percentLoss'],
-                    u'totalShares': json['sharesHeld'],
-                    u'transaction': [doc_id]
+                    u'stockTicker': json['stockTicker'],
+                    u'amount': json['amount'],
+                    u'sharesHeld': 200,
+                    u'timestamp': firestore.SERVER_TIMESTAMP
                 }
             )
-            resp['transaction_status'] = 'Created'
+            doc_id = doc_ref.id
+            print(doc_id)
+            resp['docId'] = doc_id
+
+            # update Transaction info for stock
+            query = stocks_ref.where(u'userId', '==', json['userId']).where(u'stockTicker', '==', json['stockTicker'])
+            doc_ref = query.get()
+            doc_ref_empty = True
+            doc = None
+            for document in doc_ref:
+                doc_ref_empty = False
+                doc = document
+            if doc_ref_empty:
+                doc_ref = db.collection("stocks").document()
+                doc_ref.set(
+                    {
+                        u'userId': json['userId'],
+                        u'initialBalance': json['amount'],
+                        u'cumulativeBalance': json['amount'],
+                        u'loss': json['percentLoss'],
+                        u'totalShares': 200,
+                        u'transaction': [doc_id]
+                    }
+                )
+                resp['transaction_status'] = 'Created'
+            else:
+                dict_fields = doc.to_dict()
+                print(dict_fields)
+                doc.update(
+                    {
+                        u'cumulativeBalance': json['amount'] + dict_fields['cumulativeBalance'],
+                        u'loss': (json['percentLoss'] + dict_fields['loss']) / 2,
+                        u'totalShares': 200 + dict_fields['totalShares'],
+                        u'transaction': firestore.ArrayUnion([doc_id])
+                    }
+                )
+                resp['transaction_status'] = 'Updated'
+        else:
+            print(u'No such document!')
     except google.cloud.exceptions.NotFound:
         print(u'No such documents!')
-        doc_ref.set(
-            {
-                u'userId': json['userId'],
-                u'initialBalance': json['amount'],
-                u'cumulativeBalance': json['amount'],
-                u'loss': json['percentLoss'],
-                u'totalShares': json['sharesHeld'],
-                u'transaction': [doc_id]
-            }
-        )
-        resp['transaction_status'] = 'Created'
-        resp['docId'] = doc_id
+        resp['transaction_status'] = 'Failed'
     return jsonify(resp)
 
 
@@ -231,12 +239,11 @@ def get_text_prediction():
 
     return jsonify({'you sent this': json['text']})
 
+
 def automate_trade():
     return
+
 
 if __name__ == '__main__':
     # app.add_resource(GetStock, '/get_stock', endpoint='get_stock')
     app.run(host='0.0.0.0', port=5000)
-
-
-
