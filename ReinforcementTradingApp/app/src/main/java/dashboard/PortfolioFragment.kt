@@ -14,13 +14,15 @@ import com.example.reinforcementtradingapp.models.UserPortfolioData
 import com.example.reinforcementtradingapp.retrofit.ReinforcementTradingAPI
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.portfolio_fragment.*
+import rx.Scheduler
 import com.google.firebase.auth.FirebaseUser as FirebaseUser
 
 class PortfolioFragment : Fragment(){
     private lateinit var userPortfolioData: UserPortfolioData
     private lateinit var user: FirebaseUser
-    private lateinit var stocks: ArrayList<Stock>
+    private var stocks: ArrayList<Stock> = ArrayList()
     private lateinit var linearLayoutManager: LinearLayoutManager
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
 
@@ -38,11 +40,13 @@ class PortfolioFragment : Fragment(){
 
     private fun getNumberStocksSubscription() {
         compositeDisposable.add(ReinforcementTradingAPI.service.getPortfolioData(user.uid)
-            .subscribeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
             .subscribe({userPortfolioData ->
-                userPortfolioData.stocks.forEach{
-                    stocks.add(it.value)
-                }
+                if(userPortfolioData.found)
+                    userPortfolioData.stocks.forEach{
+                        stocks.add(it.value)
+                    }
                 linearLayoutManager = LinearLayoutManager(context)
                 portfolio_stocks_recycler_view.layoutManager = linearLayoutManager
                 portfolio_stocks_recycler_view.adapter =

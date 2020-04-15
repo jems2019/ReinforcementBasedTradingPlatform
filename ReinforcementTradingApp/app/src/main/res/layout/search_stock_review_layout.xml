@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
-    <androidx.appcompat.widget.Toolbar
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="30dp"
-        app:title="Review Stock"
-        app:navigationIcon="@drawable/baseline_keyboard_backspace_white_18dp"
-        android:id="@+id/toolbar_review_stock"/>
+        android:layout_height="wrap_content"
+        android:text="@string/review_stock"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="40sp"
+        android:textStyle="bold"
+        android:layout_margin="10dp"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,70 +20,69 @@
         android:layout_gravity="center_vertical"
         android:layout_margin="45dp"
         android:orientation="vertical">
-
-
         <TextView
             android:id="@+id/search_review_ticker"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/stock_ticker"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"/>
 
         <TextView
             android:id="@+id/search_review_open"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/stock_open"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"/>
 
         <TextView
             android:id="@+id/search_review_high"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/stock_high"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"/>
 
         <TextView
             android:id="@+id/search_review_low"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/stock_low"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"/>
 
         <TextView
             android:id="@+id/search_review_close"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/stock_close"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"/>
 
         <TextView
             android:id="@+id/search_review_volume"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/stock_volume"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"/>
 
         <TextView
             android:id="@+id/search_review_recommendation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/stock_recomendation"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"/>
 
         <Button
             android:id="@+id/trade_from_search"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="@string/trade_button" />
+            android:text="@string/add_stock"
+            android:visibility="gone"/>
     </LinearLayout>
 
     <ProgressBar
@@ -92,4 +93,4 @@
         android:layout_gravity="center"/>
 
 
-</LinearLayout>
+</FrameLayout>

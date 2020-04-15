@@ -43,7 +43,7 @@ class SearchStockAdapter(private val context: Context, private var stocks: Array
             override fun performFiltering(constraint: CharSequence?): FilterResults {
                 val charSearch = constraint.toString()
                 stocksFilterList = if(charSearch.isEmpty()) {
-                    stocks
+                    ArrayList()
                 } else {
                     val results = ArrayList<String>()
                     for(stock in stocks) {

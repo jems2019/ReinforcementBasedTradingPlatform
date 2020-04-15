@@ -45,6 +45,7 @@ class SearchFragment : Fragment() {
         }
         search_results_recycler_view.adapter = adapter
         search_results_recycler_view.addItemDecoration(DividerItemDecoration(context, LinearLayoutManager.HORIZONTAL))
+        search_stock.queryHint = "Enter Stock Ticker Symbol"
         search_stock.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
             override fun onQueryTextSubmit(query: String?): Boolean {
                 TODO("Not yet implemented")
