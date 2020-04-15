@@ -28,10 +28,16 @@ class RLModel():
         self.pred_model = pred_model
         self.sent_crawler = sent_crawler
 
-    def _scale_df(self, scaling_df, target_df):
+        self.scaling_df = pd.DataFrame()
+        self.history_df = pd.DataFrame()
+
+        self.last_ticker = ''
+        self.last_day = ''
+
+    def _scale_df(self, target_df):
         price_columns = ['Open', 'High', 'Low', 'Close', 'Adj Close']
-        high = scaling_df['High'].max()
-        low = scaling_df['Adj Close'].min()
+        high = self.scaling_df['High'].max()
+        low = self.scaling_df['Adj Close'].min()
         diff = high - low
 
         #scale stock info by same scales
@@ -39,39 +45,35 @@ class RLModel():
 
         #scale volume by itself
         scaler = MinMaxScaler()
-        scaler.fit(scaling_df['Volume'].to_numpy().reshape(-1, 1))
+        scaler.fit(self.scaling_df['Volume'].to_numpy().reshape(-1, 1))
         target_df['Volume'] = scaler.transform(target_df['Volume'].to_numpy().reshape(-1, 1))
 
         return target_df
 
-    def get_action(self, ticker, day):
-        #get data
-        history_start_date = datetime.strptime(day, '%Y-%m-%d') - timedelta(days=self.obs_len)
 
-        scaling_df =  DataReader(ticker, 'yahoo', start=self.scaling_start_date)
-        history_df =  DataReader(ticker, 'yahoo', start=history_start_date, end=day)
-        history_df = history_df.tail(self.obs_len//2)
+    def get_action_from_sent(self, ticker, day, sentiment_df):
 
-        #get sentiment for history_df
-        sent_df = self.sent_crawler.get_sentiment(ticker, history_df.index)
+        day = datetime.strptime(day, '%Y-%m-%d').strftime('%Y-%m-%d')
 
-        # print(history_df)
-        # print(sent_df)
+        #if the historical data doesnt match the ticker and day
+        if not((self.last_ticker == ticker) and (self.last_day == day)):
+            print('building historical data in sent')
+            self.build_history(ticker, day)
 
-        # merge sent and stock together
-        history_df = pd.merge(history_df, sent_df, on='Date')
-        history_df.fillna(inplace=True, value=0)
+        #merge historical data and sentiment data
+        obs_df = pd.merge(self.history_df, sentiment_df, on='Date')
+        obs_df.fillna(inplace=True, value=0)
 
         #make lstm prediction data
         pred_df = self.pred_model.predict(ticker, day, self.obs_len//2)
 
         #combine historical data and prediction data
-        obs_df = history_df.append(pred_df, ignore_index=True)
+        obs_df = obs_df.append(pred_df, ignore_index=True)
         # set sentiment for future pred at 0
         obs_df.fillna(inplace=True, value=0)
 
         #scale data
-        obs_df = self._scale_df(scaling_df, obs_df)
+        obs_df = self._scale_df(obs_df)
         print(obs_df)
 
         #rearrange input to match the training data
@@ -82,6 +84,46 @@ class RLModel():
         action, _states = self.rl_model.predict(obs_df)
 
         return action 
+
+
+
+    # this method wraps data collection and prediction into one method
+    def get_action(self, ticker, day):
+
+        day = datetime.strptime(day, '%Y-%m-%d').strftime('%Y-%m-%d')
+
+        #if the historical data doesnt match the ticker and day
+        if not((self.last_ticker == ticker) and (self.last_day == day)):
+            print('building historical data')
+            self.build_history(ticker, day)
+
+        #get sentiment
+        sentiment_df = self.sent_crawler.get_sentiment(ticker, self.history_df.index)
+
+        return self.get_action_from_sent(ticker, day, sentiment_df)
+
+
+    #builds the historical portion of the stock data using yahoo datareader
+    #This call should be done before calling any of the get_action variants, but it should handle fine with last
+
+    #returns - datetime index to use for getting sentiment from firebase for historical data
+    def build_history(self, ticker, day):
+
+        self.last_ticker = ticker
+        self.last_day = datetime.strptime(day, '%Y-%m-%d').strftime('%Y-%m-%d')
+
+        #get data
+        history_start_date = datetime.strptime(day, '%Y-%m-%d') - timedelta(days=self.obs_len)
+
+        self.scaling_df =  DataReader(ticker, 'yahoo', start=self.scaling_start_date)
+        self.history_df =  DataReader(ticker, 'yahoo', start=history_start_date, end=day)
+        self.history_df = self.history_df.tail(self.obs_len//2)
+
+        # print(self.history_df)
+        # print(sent_df)
+
+        #returns index to get correct sentiment from firebase
+        return self.history_df.index
 
 
 

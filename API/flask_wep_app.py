@@ -13,10 +13,11 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 
+app = Flask(__name__)
 
-# print('loading lstm...')    
-# tf_model = load_model('./models/LSTM_model_4.h5')
-# lstm_model = LSTMStockPrediction(tf_model)
+print('loading lstm...')    
+tf_model = load_model('./models/LSTM_model_4.h5')
+lstm_model = LSTMStockPrediction(tf_model, './models/LSTM_model_4.h5')
 
 print('loading ppo2...')
 ppo2_model = PPO2.load('./models/aapl_trained_model_sent_real_pred.zip')
@@ -24,8 +25,10 @@ ppo2_model = PPO2.load('./models/aapl_trained_model_sent_real_pred.zip')
 print('loading sentiment...')
 sent_crawler = SentimentCrawler()
 
+sentiment_df = pd.DataFrame()
+
 #create RL model with other pieces
-# rl_model = RLModel(ppo2_model, lstm_model, sent_crawler)
+rl_model = RLModel(ppo2_model, lstm_model, sent_crawler)
 
 # rl_model.get_action('AAPL', '2020-01-01')
 
@@ -36,7 +39,6 @@ cred = credentials.Certificate('key.json')
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-app = Flask(__name__)
 
 # root
 @app.route("/")
@@ -47,19 +49,60 @@ def index():
     """
     return "This is root!!!!"
 
-# get prediction from model
+
+
+# get prediction from model in one call, fetches sentiment on the fly
+"""
+params - 
+ticker: <stock symbol>
+date: <date in form YYYY-MM-DD to get a prediction from>
+
+returns - 
+action: {'buy', 'sell', 'hold'}
+percent: percent of balance/stock to buy/sell
+"""
 @app.route('/api/get_rl_action/', methods=["GET"])
 def get_rl_action():
-    print('got request')
     ticker = str(request.args.get('ticker'))
     date = str(request.args.get('date'))
 
-    # need to load lstm in method since tf doesnt like loading outside
-    print('loading lstm...')    
-    tf_model = load_model('./models/LSTM_model_4.h5')
-    lstm_model = LSTMStockPrediction(tf_model)
+    #load historical data and get range for sentiment
+    date_range = rl_model.build_history(ticker, date)
 
-    rl_model = RLModel(ppo2_model, lstm_model, sent_crawler)
+    print(sentiment_df.loc[date_range])
+
+    #sentiment_df = #get from firebase with date_range
+
+    rl_action = rl_model.get_action_from_sent(ticker, date, sentiment_df.loc[date_range])
+
+    print('\n\n\n')
+    print(rl_action)
+
+    action_type = np.argmax(rl_action[0:2])
+    action_dict = {0:'buy', 1:'sell', 2:'hold'}
+    response = {
+        'action': action_dict[action_type],
+        'percent': str(rl_action[3])
+    }
+
+
+    return jsonify(response)
+
+
+# get prediction from model in one call, fetches sentiment on the fly
+"""
+params - 
+ticker: <stock symbol>
+date: <date in form YYYY-MM-DD to get a prediction from>
+
+returns - 
+action: {'buy', 'sell', 'hold'}
+percent: percent of balance/stock to buy/sell
+"""
+@app.route('/api/get_rl_action_on_fly/', methods=["GET"])
+def get_rl_action_on_fly():
+    ticker = str(request.args.get('ticker'))
+    date = str(request.args.get('date'))
 
     rl_action = rl_model.get_action(ticker, date)
 
@@ -75,6 +118,7 @@ def get_rl_action():
 
 
     return jsonify(response)
+
 
 
 @app.route('/api/get_id_data/', methods=["GET"])
@@ -120,6 +164,7 @@ def check_user_exists(userId):
         })
         print(u'No such document!')
     return jsonify(response)
+
 
 
 @app.route('/api/get_portfolio_data/<userId>', methods=["GET"])
@@ -230,6 +275,39 @@ def get_text_prediction():
         return jsonify({'error': 'invalid input'})
 
     return jsonify({'you sent this': json['text']})
+
+
+
+# store sentiment data to the firebase
+"""
+params - 
+ticker: <stock symbol>
+start_date: <date in form YYYY-MM-DD>
+end_date: <date in form YYYY-MM-DD> - forms range to get sentiment from
+
+
+returns - 
+nothing, but should push the sentiment data to the firebase
+"""
+@app.route('/api/store_sentiment/', methods=["POST"])
+def store_sentiment():
+
+    ticker = str(request.args.get('ticker'))
+    start_date = str(request.args.get('start_date'))
+    end_date = str(request.args.get('end_date'))
+
+    #global sentiment_df
+    sentiment_df = sent_crawler.get_sent_from_range(ticker, start_date, end_date)
+
+    #this df has 1 column of sentiment and indexed by date
+    print(sentiment_df)
+
+    #put this df into firebase somehow
+
+    return jsonify({'successful':True})
+
+
+
 
 def automate_trade():
     return
