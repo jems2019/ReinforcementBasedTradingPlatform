@@ -72,12 +72,23 @@ def get_rl_action():
 
     #load historical data and get range for sentiment
     date_range = rl_model.build_history(ticker, date)
+    #empty df with proper indexing
+    sentiment_df = pd.DataFrame(index=date_range, columns=['Sentiment Score'])
 
-    print(sentiment_df.loc[date_range])
+    #firebase ref
+    sent_ref = db.collection("sentiment")
 
-    #sentiment_df = #get from firebase with date_range
+    for index, row in sentiment_df.iterrows():
+        str_date = index.strftime('%Y-%m-%d')
+        #get the sentiment from firebase for date
+        docs = sent_ref.where(u'date', u'==', str_date).stream()
+        for doc in docs:
+            #put sentiment for current stock into df
+            sentiment_df.loc[index, :] = doc.to_dict()[ticker]
 
-    rl_action = rl_model.get_action_from_sent(ticker, date, sentiment_df.loc[date_range])
+    print(sentiment_df)
+
+    rl_action = rl_model.get_action_from_sent(ticker, date, sentiment_df)
 
     print('\n\n\n')
     print(rl_action)
@@ -316,9 +327,21 @@ def store_sentiment():
     sentiment_df = sent_crawler.get_sent_from_range(ticker, start_date, end_date)
 
     #this df has 1 column of sentiment and indexed by date
-    print(sentiment_df)
 
-    #put this df into firebase somehow
+    sent_dict = {}
+
+    for index, row in sentiment_df.iterrows():
+        str_date = index.strftime('%Y-%m-%d')
+        sent_dict[str(str_date)] = row['Sentiment Score']
+
+    #firebase ref
+    sent_ref = db.collection("sentiment")
+
+    #put shit in firebase
+    for date, score in sent_dict.items():
+        data = {'date':date, ticker:score}
+        sent_ref.document(date).set(data, merge=True)
+
 
     return jsonify({'successful':True})
 
