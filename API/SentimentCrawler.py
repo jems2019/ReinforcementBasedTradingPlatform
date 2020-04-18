@@ -19,6 +19,9 @@ class SentimentCrawler():
         self.sent_analysis = SentimentIntensityAnalyzer()
         self.base_url = 'https://www.marketwatch.com/search?q={ticker}&m=Keyword&rpp=15&mp=806&bd=true&bd=false&bdv={m}%2F{d}%2F{y}&rs=true'
 
+    def get_sent_from_range(self, ticker, start_date, end_date):
+        date_range = self._date_range(start_date, end_date)
+        return(self.get_sentiment(ticker, date_range))
 
     def get_sentiment(self, ticker, days):
         data = []
@@ -67,6 +70,16 @@ class SentimentCrawler():
         average_daily_sentiment = collected_sent_data.resample('D').mean()
 
         return average_daily_sentiment
+
+
+    def _date_range(self, start_date, end_date):
+        start_date = datetime.strptime(start_date, '%Y-%m-%d')
+        end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        dates = []
+        for n in range(int ((end_date - start_date).days)+1):
+            dates.append(start_date + timedelta(n))
+
+        return dates
 
 
 

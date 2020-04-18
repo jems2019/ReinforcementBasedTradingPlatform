@@ -21,4 +21,22 @@ today = datetime.today().strftime('%Y-%m-%d')
 
 print(today)
 
-print(rl_model.get_action('AAPL', '2020-01-01'))
+dates = rl_model.build_history('AAPL', today)
+
+print(dates)
+
+sentiment_df = sent_crawler.get_sent_from_range('AAPL', '2020-04-01', today)
+
+print(sentiment_df.loc[dates])
+
+
+# print(rl_model.get_action('AAPL', '2020-01-01'))
+
+# print('second pred')
+
+# print(rl_model.get_action('AAPL', '2020-02-01'))
+
+
+# sent = sent_crawler.get_sent_from_range('AAPL', '2020-04-10', today)
+
+# print(sent)

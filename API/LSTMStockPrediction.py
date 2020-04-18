@@ -3,13 +3,18 @@ from datetime import date, datetime, timedelta
 
 import numpy as np
 import pandas as pd
+import logging
 
 from pandas_datareader.data import DataReader
 
 from sklearn.preprocessing import MinMaxScaler
 
 import tensorflow as tf
-from tensorflow.keras.models import load_model
+#import keras
+
+from tensorflow.python.keras.backend import set_session
+from tensorflow.python.keras.models import load_model
+#from tensorflow.keras.models import load_model
 
 
 # Method parameters: stock ticker, start date, number of days to predict
@@ -19,10 +24,24 @@ class LSTMStockPrediction():
     # ticker - stock ticker
     # d - day (YYYY-MM-DD) to start the prediction
     # n - number of days to predict starting from date d
-    def __init__(self, model):
+    def __init__(self, model, model_path = ''):
 
-        self.model = model
+        self.session = tf.Session()
+        self.graph = tf.get_default_graph()
+
+        with self.graph.as_default():
+            with self.session.as_default():
+                logging.info("neural network initialised")
+
+        if not (model_path == ''):
+            print('loading inside class')
+            set_session(self.session)
+            self.model = load_model(model_path)
+        else:
+            self.model = model
+
         self.history_len = 60
+        #self.graph = graph
 
     def predict(self, ticker, d, n):
         # getting previous 90 days of stock data
@@ -45,7 +64,12 @@ class LSTMStockPrediction():
             #reshape input for model
             model_input = np.reshape(inputClosing_scaled[i:i+self.history_len,:].T, (data.shape[1],self.history_len,1))
             #do predictions
-            pred = self.model.predict(model_input)
+
+            
+            with self.graph.as_default():
+                with self.session.as_default():
+                    pred = self.model.predict(model_input)
+
             #reflip and transform
             predicted_price = sc.inverse_transform(pred.T)
             #put the results to the end of the history array and fix dims
@@ -57,6 +81,9 @@ class LSTMStockPrediction():
         #convert array to dataframe, use the colums from data
         out = pd.DataFrame(np.concatenate(out), columns=data.columns)
         return out
+
+    def get_session_graph(self):
+        return self.session, self.graph
 
 
 # lstm_model_path = '/content/drive/My Drive/Masters project/LSTM_model_4.h5'
