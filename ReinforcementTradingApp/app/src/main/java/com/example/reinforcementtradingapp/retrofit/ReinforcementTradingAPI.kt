@@ -49,7 +49,7 @@ class ReinforcementTradingAPI {
             .readTimeout(100, TimeUnit.SECONDS).build()
 
         private val retrofit = Retrofit.Builder()
-                .baseUrl("http://10.0.2.2:5000").client(client)
+                .baseUrl("https://reinforcementtradingplatform.web.app").client(client)
                 .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()
