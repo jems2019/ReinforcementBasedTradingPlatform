@@ -124,6 +124,10 @@ def auto_trade_stock(doc):
     transactions = doc.to_dict()['transactions']
     user_id = doc.to_dict()['userId']
 
+    if not(doc.to_dict()['autoTrade']):
+        print('AUTO TRADE IS OFF FOR: ' + user_id + ' stock: ' + ticker)
+        return
+
     updated_dict = doc.to_dict()
 
     print('auto trading ' + user_id + ' stock: ' + ticker + '...')
@@ -150,12 +154,15 @@ def auto_trade_stock(doc):
         cost = float(shares_to_buy*current_price)
         balance -= cost
 
+        portfolio_value = current_price*(shares_held+shares_to_buy) + balance
+
         trans_dict = {
             'amount' : float(cost),
             'sharesTransacted' : int(shares_to_buy),
             'stockTicker' : ticker,
             'timestamp' : firestore.SERVER_TIMESTAMP, 
             'userId' : user_id,
+            'portfolioValue': portfolio_value,
             'action_type' : 'buy'
         }
 
@@ -183,6 +190,8 @@ def auto_trade_stock(doc):
         cost = float(shares_to_sell*current_price)
         balance += cost
         shares_held -= shares_to_sell
+
+        portfolio_value = current_price*(shares_held+shares_to_buy) + balance
 
         trans_dict = {
             'amount' : cost,
