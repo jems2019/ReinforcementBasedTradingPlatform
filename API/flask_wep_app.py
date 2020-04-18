@@ -1,5 +1,5 @@
+print('loading libs...')
 import warnings
-
 warnings.filterwarnings('ignore')
 # load model stuff
 from RLModel import *
@@ -9,6 +9,7 @@ from API_crawler import RealTimeApi
 
 import google
 from flask import Flask, request, jsonify
+from apscheduler.schedulers.background import BackgroundScheduler
 import numpy as np
 import firebase_admin
 from firebase_admin import credentials
@@ -33,7 +34,6 @@ sentiment_df = pd.DataFrame()
 #create RL model with other pieces
 rl_model = RLModel(ppo2_model, lstm_model, sent_crawler)
 
-
 # setup Firestore DB
 # Use a service account
 print('setup firebase...')
@@ -43,6 +43,212 @@ db = firestore.client()
 
 
 
+#----helper functions---#
+
+# gets model action using sentiment from firebase
+# should add the sentiment to firebase if it's not there
+def get_rl_action(ticker, date):
+    #load historical data and get range for sentiment
+    date_range = rl_model.build_history(ticker, date)
+    #empty df with proper indexing
+    sentiment_df = pd.DataFrame(index=date_range, columns=['Sentiment Score'])
+
+    #firebase ref
+    sent_ref = db.collection("sentiment")
+
+    for index, row in sentiment_df.iterrows():
+        str_date = index.strftime('%Y-%m-%d')
+        #get the sentiment from firebase for date
+        docs = sent_ref.where(u'date', u'==', str_date).stream()
+        #if not in firebase, add it
+        for doc in docs:
+            if not(ticker in doc.to_dict().keys()):
+                print(str_date + ' ' + ticker + ' sentiment not in firebase, adding it')
+                store_sentiment(ticker, str_date, str_date)
+
+        #reload docs
+        docs = sent_ref.where(u'date', u'==', str_date).stream()
+        for doc in docs:
+            #put sentiment for current stock into df
+            sentiment_df.loc[index, :] = doc.to_dict()[ticker]
+
+    print(sentiment_df)
+
+    rl_action = rl_model.get_action_from_sent(ticker, date, sentiment_df)
+
+    print('\n')
+    print(rl_action)
+
+    action_type = np.argmax(rl_action[0:2])
+    action_dict = {0: 'buy', 1: 'sell', 2: 'hold'}
+    response = {
+        'action': action_dict[action_type],
+        'percent': str(rl_action[3])
+    }
+
+    return response
+
+
+#gets sentiment and stores it in firebase
+def store_sentiment(ticker, start_date, end_date):
+    sentiment_df = sent_crawler.get_sent_from_range(ticker, start_date, end_date)
+
+    #convert df to dict to put in firebase
+    sent_dict = {}
+    for index, row in sentiment_df.iterrows():
+        str_date = index.strftime('%Y-%m-%d')
+        sent_dict[str(str_date)] = row['Sentiment Score']
+
+    #firebase ref
+    sent_ref = db.collection("sentiment")
+
+    #put shit in firebase
+    for date, score in sent_dict.items():
+        data = {'date':date, ticker:score}
+        sent_ref.document(date).set(data, merge=True)
+
+    return
+
+#auto trade based on stock document from firebase
+def auto_trade_stock(doc):
+    today = datetime.today().strftime('%Y-%m-%d')
+
+    stocks_ref = db.collection('stocks')
+    transactions_ref = db.collection('transactions')
+
+    balance = float(doc.to_dict()['balance'])
+    init_bal = float(doc.to_dict()['initialBalance'])
+    min_bal = float(doc.to_dict()['minBalance'])
+    shares_held = int(doc.to_dict()['sharesHeld'])
+    ticker = doc.to_dict()['stockTicker']
+    transactions = doc.to_dict()['transactions']
+    user_id = doc.to_dict()['userId']
+
+    updated_dict = doc.to_dict()
+
+    print('auto trading ' + user_id + ' stock: ' + ticker + '...')
+
+    rl_action = get_rl_action(ticker, today)
+
+    #get current stock price
+    data = RealTimeApi(symbol=ticker)
+    rt_data = data.get_intra_day_data(interval='1min')
+
+    #using datareader since other didnt work
+    # data = DataReader(ticker, 'yahoo', start=today)
+    # current_price = data.tail(1)['Close'][0]
+
+    current_price = float(rt_data.iloc[0]["Close"])
+
+    if(rl_action['action'] == 'buy'):
+        print('i buy')
+
+        total_possible = int(balance / current_price)
+        shares_to_buy = int(total_possible * float(rl_action['percent']))
+        print('buying ' + str(shares_to_buy))
+
+        cost = float(shares_to_buy*current_price)
+        balance -= cost
+
+        trans_dict = {
+            'amount' : float(cost),
+            'sharesTransacted' : int(shares_to_buy),
+            'stockTicker' : ticker,
+            'timestamp' : firestore.SERVER_TIMESTAMP, 
+            'userId' : user_id,
+            'action_type' : 'buy'
+        }
+
+        #add to transaction table
+        new_trans = transactions_ref.document()
+        trans_id = new_trans.id
+        new_trans.set(trans_dict)
+        print('added transaction')
+
+        #update stock document
+        updated_dict['balance'] = balance
+        updated_dict['sharesHeld'] = shares_held + shares_to_buy
+        updated_dict['transactions'].append(trans_id)
+        if(balance)<min_bal: 
+            updated_dict['autoTrade'] = False    
+        stocks_ref.document(doc.id).set(updated_dict)
+        print('updated stock\n')
+
+
+    elif(rl_action['action'] == 'sell'):
+        print('i sell')
+
+        shares_to_sell =  int(shares_held * float(rl_action['percent']))
+        print('selling ' + str(shares_to_sell))
+        cost = float(shares_to_sell*current_price)
+        balance += cost
+        shares_held -= shares_to_sell
+
+        trans_dict = {
+            'amount' : cost,
+            'sharesTransacted' : shares_to_sell,
+            'stockTicker' : ticker,
+            'timestamp' : firestore.SERVER_TIMESTAMP, 
+            'userId' : user_id,
+            'action_type' : 'sell'
+        }
+
+        #add to transaction table
+        new_trans = transactions_ref.document()
+        trans_id = new_trans.id
+        new_trans.set(trans_dict)
+        print('added transaction')
+
+
+        #update stock document
+        updated_dict['balance'] = balance
+        updated_dict['sharesHeld'] = shares_held + shares_to_buy
+        updated_dict['transactions'].append(trans_id)
+        if(balance)<min_bal: 
+            updated_dict['autoTrade'] = False     
+        stocks_ref.document(doc.id).set(updated_dict)
+        print('updated stock\n')
+
+    return
+
+#auto trades all stocks owned by user
+def auto_trade_user(user_id):
+    stocks_ref = db.collection('stocks')
+    transactions_ref = db.collection('transactions')
+
+    docs = stocks_ref.where(u'userId', u'==', user_id).stream()
+
+    #for each stock the user has, auto trade
+    for doc in docs:
+        auto_trade_stock(doc)
+
+    return
+
+#auto trades all the users
+def auto_trade_all():
+    user_ref = db.collection('users')
+    users = user_ref.stream()
+    for user in users:
+        auto_trade_user(user.id)
+
+
+
+#---set up automatic updates---#
+
+#scheduler
+sched = BackgroundScheduler(daemon=True)
+
+#set autotrading to happen at noon every day
+today = datetime.today().strftime('%Y-%m-%d')
+today += ' 12:00:00'
+#auto trade all every day
+sched.add_job(auto_trade_all, trigger='interval', days=1, start_date=today)
+sched.start()
+
+
+
+#---API functions---#
+
 # root
 @app.route("/")
 def index():
@@ -51,8 +257,6 @@ def index():
     :return: str
     """
     return "This is root!!!!"
-
-
 
 
 # get prediction from model in one call, should read data from firebase
@@ -66,40 +270,12 @@ action: {'buy', 'sell', 'hold'}
 percent: percent of balance/stock to buy/sell
 """
 @app.route('/api/get_rl_action/', methods=["GET"])
-def get_rl_action():
+def api_get_rl_action():
+    print('api/get_rl_action')
     ticker = str(request.args.get('ticker'))
     date = str(request.args.get('date'))
 
-    #load historical data and get range for sentiment
-    date_range = rl_model.build_history(ticker, date)
-    #empty df with proper indexing
-    sentiment_df = pd.DataFrame(index=date_range, columns=['Sentiment Score'])
-
-    #firebase ref
-    sent_ref = db.collection("sentiment")
-
-    for index, row in sentiment_df.iterrows():
-        str_date = index.strftime('%Y-%m-%d')
-        #get the sentiment from firebase for date
-        docs = sent_ref.where(u'date', u'==', str_date).stream()
-        for doc in docs:
-            #put sentiment for current stock into df
-            sentiment_df.loc[index, :] = doc.to_dict()[ticker]
-
-    print(sentiment_df)
-
-    rl_action = rl_model.get_action_from_sent(ticker, date, sentiment_df)
-
-    print('\n\n\n')
-    print(rl_action)
-
-    action_type = np.argmax(rl_action[0:2])
-    action_dict = {0:'buy', 1:'sell', 2:'hold'}
-    response = {
-        'action': action_dict[action_type],
-        'percent': str(rl_action[3])
-    }
-
+    response = get_rl_action(ticker, date)
 
     return jsonify(response)
 
@@ -116,7 +292,7 @@ action: {'buy', 'sell', 'hold'}
 percent: percent of balance/stock to buy/sell
 """
 @app.route('/api/get_rl_action_on_fly/', methods=["GET"])
-def get_rl_action_on_fly():
+def api_get_rl_action_on_fly():
     ticker = str(request.args.get('ticker'))
     date = str(request.args.get('date'))
 
@@ -133,6 +309,30 @@ def get_rl_action_on_fly():
     }
 
     return jsonify(response)
+
+
+@app.route('/api/auto_trade_user/', methods=["POST"])
+def api_auto_trade_user():
+    user_id = str(request.args.get('user_id'))
+    auto_trade_user(user_id)
+    return jsonify({'success': True})
+
+
+@app.route('/api/auto_trade_user_stock/', methods=["POST"])
+def api_auto_trade_user_stock():
+    user_id = str(request.args.get('user_id'))
+    ticker = str(request.args.get('ticker'))
+
+    stocks_ref = db.collection('stocks')
+    transactions_ref = db.collection('transactions')
+
+    docs = stocks_ref.where(u'userId', u'==', user_id).where(u'stockTicker', '==', ticker).stream()
+
+    #for each stock the user has, auto trade
+    for doc in docs:
+        auto_trade_stock(doc)
+
+    return jsonify({'success': True})
 
 
 
@@ -205,6 +405,57 @@ def get_portfolio_data(userId):
     return json.dumps(response)
 
 
+#adds a doc to the stock table, updates the repsective user
+"""
+params - 
+userId: <id of user>
+ticker: <stock symbol>
+amount: starting balance for this stock
+minBalance: minimum balance for this stock before autotrade stops
+
+returns - 
+success: true or false
+"""
+@app.route('/api/add_stock_to_user/', methods=['POST'])
+def add_stock_to_user():
+    print('adding new stock for user')
+    new_stock = {
+        'userId':request.args.get('userId'),
+        'stockTicker':request.args.get('ticker'),
+        'sharesHeld':0,
+        'balance':request.args.get('amount'),
+        'initialBalance':request.args.get('amount'),
+        'minBalance':request.args.get('minBalance'),
+        'transactions':[],
+        'autoTrade':True
+    }
+
+    #update user table
+    user_ref = db.collection("users").document(new_stock['userId'])
+    user = user_ref.get()
+    if user.exists:
+        user_ref.update(
+            {
+                u'stocks': firestore.ArrayUnion([new_stock['stockTicker']])
+            }
+        )
+    else:
+        print('no user found')
+        return jsonify({'success':False})
+
+    #update stock table
+    stocks_ref = db.collection("stocks")
+    stocks_ref.document().set(new_stock)
+
+    return jsonify({'success':True})
+
+
+
+
+
+
+
+
 @app.route('/api/create_transaction', methods=['POST'])
 def create_transaction():
     json = request.get_json()
@@ -251,9 +502,9 @@ def create_transaction():
                         u'stockTicker': json['stockTicker'],
                         u'userId': json['userId'],
                         u'initialBalance': json['amount'],
-                        u'cumulativeBalance': json['amount'],
-                        u'loss': json['percentLoss'],
-                        u'totalShares': 200,
+                        u'balance': json['amount'],
+                        u'minBalance': json['percentLoss'],
+                        u'sharesHeld': 200,
                         u'transactions': [doc_id]
                     }
                 )
@@ -263,9 +514,9 @@ def create_transaction():
                 print(dict_fields)
                 doc.update(
                     {
-                        u'cumulativeBalance': json['amount'] + dict_fields['cumulativeBalance'],
-                        u'loss': (json['percentLoss'] + dict_fields['loss']) / 2,
-                        u'totalShares': 200 + dict_fields['totalShares'],
+                        u'balance': json['amount'] + dict_fields['balance'],
+                        u'minBalance': (json['percentLoss'] + dict_fields['minBalance']) / 2,
+                        u'sharesHeld': 200 + dict_fields['sharesHeld'],
                         u'transaction': firestore.ArrayUnion([doc_id])
                     }
                 )
@@ -289,22 +540,6 @@ def hello_user(user):
     return "Hello %s!" % user
 
 
-# POST
-@app.route('/api/post_some_data', methods=['POST'])
-def get_text_prediction():
-    """
-    predicts requested text whether it is ham or spam
-    :return: json
-    """
-    json = request.get_json()
-    print(json)
-    if len(json['text']) == 0:
-        return jsonify({'error': 'invalid input'})
-
-    return jsonify({'you sent this': json['text']})
-
-
-
 # store sentiment data to the firebase
 """
 params - 
@@ -317,39 +552,15 @@ returns -
 successful on finishing
 """
 @app.route('/api/store_sentiment/', methods=["POST"])
-def store_sentiment():
+def api_store_sentiment():
 
     ticker = str(request.args.get('ticker'))
     start_date = str(request.args.get('start_date'))
     end_date = str(request.args.get('end_date'))
 
-    #global sentiment_df
-    sentiment_df = sent_crawler.get_sent_from_range(ticker, start_date, end_date)
-
-    #this df has 1 column of sentiment and indexed by date
-
-    sent_dict = {}
-
-    for index, row in sentiment_df.iterrows():
-        str_date = index.strftime('%Y-%m-%d')
-        sent_dict[str(str_date)] = row['Sentiment Score']
-
-    #firebase ref
-    sent_ref = db.collection("sentiment")
-
-    #put shit in firebase
-    for date, score in sent_dict.items():
-        data = {'date':date, ticker:score}
-        sent_ref.document(date).set(data, merge=True)
-
+    store_sentiment(ticker, start_date, end_date)
 
     return jsonify({'successful':True})
-
-
-
-
-def automate_trade():
-    return
 
 
 if __name__ == '__main__':
