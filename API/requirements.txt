@@ -12,3 +12,4 @@ stable-baselines==2.9
 firebase-admin==4.0.1
 tensorflow==1.15.2
 apscheduler==3.6.3
+sklearn==0.0

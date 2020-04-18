@@ -1,0 +1,18 @@
+{
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [ {
+    "source": "**",
+    "run": {
+      "serviceId": "flask-fire-2",  // "service name" (from when you deployed the container image)
+      "region": "us-central1"
+    }
+  	} ]
+
+  }
+}
