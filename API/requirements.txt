@@ -11,3 +11,4 @@ numpy==1.18.2
 stable-baselines==2.9
 firebase-admin==4.0.1
 tensorflow==1.15.2
+sklearn==0.0

@@ -13,7 +13,7 @@ import numpy as np
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
-
+import os
 
 app = Flask(__name__)
 
@@ -354,4 +354,6 @@ def automate_trade():
 
 if __name__ == '__main__':
     # app.add_resource(GetStock, '/get_stock', endpoint='get_stock')
-    app.run(host='0.0.0.0', port=5000)
+    # app.run(host='0.0.0.0', port=5000)
+    app.run(debug=True,host='0.0.0.0',
+        port=int(os.environ.get('PORT', 5000)))
