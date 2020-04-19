@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.reinforcementtradingapp.R
 import com.example.reinforcementtradingapp.models.Stock
 import kotlinx.android.synthetic.main.stocks_row.view.*
+import java.math.RoundingMode
 
 class StocksAdapter(val stocks: ArrayList<Stock>, val context: Context, val listener: (Stock) -> Unit) :
     RecyclerView.Adapter<StocksAdapter.ViewHolder>() {
@@ -23,10 +24,21 @@ class StocksAdapter(val stocks: ArrayList<Stock>, val context: Context, val list
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        var isSharesHeld = true
         holder.stockTicker.text = stocks[position].stockTicker
-        holder.numShares.text = stocks[position].totalShares.toString()
-        holder.itemView.setOnClickListener {
+        holder.numShares.text = stocks[position].sharesHeld.toString()
+        holder.stockTicker.setOnClickListener {
             listener.invoke(stocks[position])
+        }
+        holder.numShares.setOnClickListener {
+            if(isSharesHeld) {
+                holder.numShares.text = "$" + stocks[position].balance.toBigDecimal().setScale(2, RoundingMode.HALF_EVEN).toString()
+                isSharesHeld = false
+            }
+            else {
+                holder.numShares.text = stocks[position].sharesHeld.toString()
+                isSharesHeld = true
+            }
         }
     }
 

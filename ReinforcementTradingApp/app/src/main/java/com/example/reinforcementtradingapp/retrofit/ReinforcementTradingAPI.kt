@@ -38,7 +38,7 @@ class ReinforcementTradingAPI {
         @GET("/api/get_id_data/")
         fun getRealTimeData(@Query("ticker") ticker: String): Single<StockInfo>
 
-        @GET("/api/get_rl_action/")
+        @GET("/api/api_get_rl_action_on_fly/")
         fun getRealTimeAction(@Query("ticker") ticker: String,
                               @Query ("date") date: String): Single<TradeAction>
     }

@@ -5,10 +5,11 @@ import kotlinx.android.parcel.Parcelize
 @Parcelize
 class Stock(
     val userId: String,
-    val initialBalance: Int,
-    val cumulativeBalance: Int,
+    val autoTrade: Boolean,
+    val initialBalance: String,
+    val minBalance: String,
+    val balance: Double,
     val stockTicker: String,
-    val loss: Int,
-    val totalShares: Int,
+    val sharesHeld: Int,
     val transactions: ArrayList<String>
 ): Parcelable

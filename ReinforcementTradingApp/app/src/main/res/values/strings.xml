@@ -16,4 +16,6 @@
     <string name="stock_volume">Volume: %s</string>
     <string name="stock_recomendation">Recommendation: %s</string>
     <string name="review_stock">Review Stock</string>
+    <string name="portfolio_stock_ticker_title">Ticker Symbol</string>
+    <string name="portfolio_stock_shares_held">Ticker Symbol</string>
 </resources>
