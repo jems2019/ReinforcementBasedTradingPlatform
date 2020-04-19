@@ -4,9 +4,7 @@ import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-class TransactionBody(
-    val userId: String,
-    val stockTicker: String,
-    val amount: Int,
-    val percentLoss: Int
+class TransactionResponse(
+    val success: Boolean,
+    val transactions: HashMap<String,Transaction>
 ) : Parcelable

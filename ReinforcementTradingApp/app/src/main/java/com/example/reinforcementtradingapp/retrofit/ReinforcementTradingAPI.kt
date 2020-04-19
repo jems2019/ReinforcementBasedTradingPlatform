@@ -27,7 +27,7 @@ class ReinforcementTradingAPI {
 
         @Headers("Content-type: application/json")
         @POST("/api/create_transaction")
-        fun createTransaction(@Body transactionBody: TransactionBody): Single<Transaction>
+        fun createTransaction(@Body transactionBody: TransactionResponse): Single<Transaction>
 
         @GET("/api/check_user/{userId}")
         fun checkIfUserExists(@Path("userId") userId: String): Call<ResponseBody>
@@ -38,9 +38,13 @@ class ReinforcementTradingAPI {
         @GET("/api/get_id_data/")
         fun getRealTimeData(@Query("ticker") ticker: String): Single<StockInfo>
 
-        @GET("/api/api_get_rl_action_on_fly/")
+        @GET("/api/get_rl_action/")
         fun getRealTimeAction(@Query("ticker") ticker: String,
                               @Query ("date") date: String): Single<TradeAction>
+
+        @GET("/api/get_transactions/")
+        fun getTransactions(@Query("userId") userId: String,
+                            @Query("ticker") ticker: String): Single<TransactionResponse>
     }
 
     companion object {
@@ -49,7 +53,7 @@ class ReinforcementTradingAPI {
             .readTimeout(100, TimeUnit.SECONDS).build()
 
         private val retrofit = Retrofit.Builder()
-                .baseUrl("https://reinforcementtradingplatform.web.app").client(client)
+                .baseUrl("http://10.0.2.2:5000").client(client)
                 .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()

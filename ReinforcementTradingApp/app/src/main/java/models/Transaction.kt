@@ -6,8 +6,11 @@ import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 class Transaction(
-    @SerializedName("transaction_status")
-    val transactionStatus: String,
-
-    val docId: String
+    @SerializedName("action_type")
+    val actionType: String,
+    val amount: Double,
+    val portfolioValue: Double,
+    val sharesTransacted: Int,
+    val stockTicker: String,
+    val timestamp: String
 ): Parcelable

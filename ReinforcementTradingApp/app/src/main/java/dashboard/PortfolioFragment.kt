@@ -1,5 +1,6 @@
 package com.example.reinforcementtradingapp.dashboard
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -53,7 +54,12 @@ class PortfolioFragment : Fragment(){
                     StocksAdapter(
                         stocks,
                         context!!
-                    ) {}
+                    ) {
+                        val intent = Intent(context, ReviewStockTradeActivity::class.java)
+                        intent.putExtra("current_user", user)
+                        intent.putExtra("stock", it)
+                        startActivity(intent)
+                    }
 
             },{ throwable: Throwable ->
                 Log.e("PortfolioFragment", throwable.toString())

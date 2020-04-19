@@ -80,4 +80,9 @@ class SearchStockReviewActivity : AppCompatActivity() {
                 Log.e("SearchStockReviewActivity", throwable.toString())
             }))
     }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        finish()
+    }
 }

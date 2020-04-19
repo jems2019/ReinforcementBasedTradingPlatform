@@ -17,5 +17,8 @@
     <string name="stock_recomendation">Recommendation: %s</string>
     <string name="review_stock">Review Stock</string>
     <string name="portfolio_stock_ticker_title">Ticker Symbol</string>
-    <string name="portfolio_stock_shares_held">Ticker Symbol</string>
+    <string name="portfolio_stock_shares_held">Shares Held: %s</string>
+    <string name="initial_balance">Initial Balance: $ %s</string>
+    <string name="portfolio_value">Portfolio Value: $ %s</string>
+    <string name="transactions">Transactions</string>
 </resources>
