@@ -458,11 +458,40 @@ def add_stock_to_user():
 
     return jsonify({'success':True})
 
+# Update stock when user has stock in portfolio
+"""
+params - 
+userId: <id of user>
+ticker: <stock symbol>
+amount: starting balance for this stock
+minBalance: minimum balance for this stock before autotrade stops
+
+returns - 
+success: true or false
+"""
 
 
-
-
-
+@app.route('/api/update_stock_for_user/', methods=['POST'])
+def update_stock_for_user():
+    stocks_ref = db.collection("stocks")
+    # Create stock query to query by userId and stock ticker
+    query = stocks_ref.where(u'userId', '==', request.args.get('userId')).where(u'stockTicker', '==',
+                                                                                request.args.get('ticker'))
+    try:
+        doc_ref = query.get()
+        for doc in doc_ref:
+            doc_update = stocks_ref.document(doc.id)
+            doc_update.update(
+                {
+                    'balance': firestore.Increment(int(request.args.get('amount'))),
+                    'initialBalance': firestore.Increment(int(request.args.get('amount'))),
+                    'minBalance': request.args.get('minBalance'),
+                }
+            )
+    except google.cloud.exceptions.NotFound:
+        print(u'No such documents!')
+        return jsonify({'success': False})
+    return jsonify({'success': True})
 
 
 @app.route('/api/create_transaction', methods=['POST'])
