@@ -45,6 +45,19 @@ class ReinforcementTradingAPI {
         @GET("/api/get_transactions/")
         fun getTransactions(@Query("userId") userId: String,
                             @Query("ticker") ticker: String): Single<TransactionResponse>
+
+        @POST("/api/update_stock_for_user/")
+        fun updateStockForUser(@Query("userId") userId: String,
+                               @Query("ticker") ticker: String,
+                               @Query("amount") amount: Double,
+                               @Query("minBalance") minBalance: Double): Single<ResponseBody>
+
+        @POST("/api/add_stock_to_user/")
+        fun addStockToUser(@Query("userId") userId: String,
+                           @Query("ticker") ticker: String,
+                           @Query("amount") amount: Double,
+                           @Query("minBalance") minBalance: Double): Single<ResponseBody>
+
     }
 
     companion object {

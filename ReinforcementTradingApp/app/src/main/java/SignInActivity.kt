@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.annotation.MainThread
 import androidx.appcompat.app.AppCompatActivity
 import com.example.reinforcementtradingapp.dashboard.StocksMainDashboardActivity
+import com.example.reinforcementtradingapp.models.UserData
 import com.example.reinforcementtradingapp.retrofit.ReinforcementTradingAPI
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignIn.*
@@ -19,6 +20,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.gson.Gson
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.sign_in_layout.*
@@ -116,8 +118,10 @@ class SignInActivity : AppCompatActivity() {
                     override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                         if (response.isSuccessful) {
                             val intent = Intent(this@SignInActivity, StocksMainDashboardActivity::class.java)
+                            val stocks = Gson().fromJson(response.body()?.string(), UserData::class.java)
                             intent.putExtra("current_user", currentUser)
                             intent.putExtra("fragment_to_load", "Portfolio")
+                            intent.putExtra("stocks", stocks)
                             startActivity(intent)
                         }
                     }
