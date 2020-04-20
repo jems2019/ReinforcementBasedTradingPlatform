@@ -18,71 +18,78 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:layout_margin="45dp"
-        android:orientation="vertical">
+        android:layout_margin="30dp"
+        android:orientation="vertical"
+        android:background="@drawable/rounded_corner"
+        android:backgroundTint="@color/colorPrimary">
         <TextView
             android:id="@+id/search_review_ticker"
+            android:textColor="@color/white"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="22sp"
             android:textStyle="bold"
+            android:padding="5dp"
             android:layout_marginBottom="12dp"/>
 
         <TextView
             android:id="@+id/search_review_open"
+            android:textColor="@color/white"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="22sp"
             android:textStyle="bold"
+            android:padding="5dp"
             android:layout_marginBottom="12dp"/>
 
         <TextView
             android:id="@+id/search_review_high"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textColor="@color/white"
             android:textSize="22sp"
             android:textStyle="bold"
+            android:padding="5dp"
             android:layout_marginBottom="12dp"/>
 
         <TextView
             android:id="@+id/search_review_low"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textColor="@color/white"
             android:textSize="22sp"
             android:textStyle="bold"
+            android:padding="5dp"
             android:layout_marginBottom="12dp"/>
 
         <TextView
             android:id="@+id/search_review_close"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textColor="@color/white"
             android:textSize="22sp"
             android:textStyle="bold"
+            android:padding="5dp"
             android:layout_marginBottom="12dp"/>
 
         <TextView
             android:id="@+id/search_review_volume"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textColor="@color/white"
             android:textSize="22sp"
             android:textStyle="bold"
+            android:padding="5dp"
             android:layout_marginBottom="12dp"/>
 
         <TextView
             android:id="@+id/search_review_recommendation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="22sp"
+            android:textSize="32sp"
             android:textStyle="bold"
+            android:padding="5dp"
             android:layout_marginBottom="12dp"/>
-
-        <Button
-            android:id="@+id/trade_from_search"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="@string/add_stock"
-            android:visibility="gone"/>
     </LinearLayout>
 
     <ProgressBar

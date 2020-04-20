@@ -5,7 +5,7 @@
     <string name="enter_stock">Enter Stock Ticker (ex. AAPL)</string>
     <string name="add_stock">Add Stock</string>
     <string name="enter_amount">Enter Amount($)</string>
-    <string name="enter_percent_loss">Enter % Loss</string>
+    <string name="enter_percent_loss">Enter $ Loss</string>
     <string name="trade_button">Trade</string>
     <string name="search">Search</string>
     <string name="stock_ticker">Stock Ticker: %s</string>
@@ -18,7 +18,7 @@
     <string name="review_stock">Review Stock</string>
     <string name="portfolio_stock_ticker_title">Ticker Symbol</string>
     <string name="portfolio_stock_shares_held">Shares Held: %s</string>
-    <string name="initial_balance">Initial Balance: $ %s</string>
-    <string name="portfolio_value">Portfolio Value: $ %s</string>
+    <string name="initial_balance">Initial Balance: $%s</string>
+    <string name="portfolio_value">Portfolio Value: $%s</string>
     <string name="transactions">Transactions</string>
 </resources>

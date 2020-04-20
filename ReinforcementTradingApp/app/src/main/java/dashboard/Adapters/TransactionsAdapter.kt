@@ -1,10 +1,12 @@
 package com.example.reinforcementtradingapp.dashboard.Adapters
 
 import android.content.Context
+import android.graphics.Color.red
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.reinforcementtradingapp.R
 import com.example.reinforcementtradingapp.models.Stock
@@ -25,8 +27,16 @@ class TransactionsAdapter(val transactions: ArrayList<Transaction>, val context:
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.transactionType.text = transactions[position].actionType + transactions[position].sharesTransacted
-        holder.transactionDate.text = transactions[position].timestamp.substringBefore("at")
+        var action = ""
+        if(transactions[position].actionType == "buy") {
+            holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.light_green))
+            action = "Bought "
+        } else {
+            holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.light_red))
+            action = "Sold "
+        }
+        holder.transactionType.text = action + transactions[position].sharesTransacted + " shares"
+        holder.transactionDate.text = transactions[position].timestamp.substringBefore(" ")
     }
 
    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {

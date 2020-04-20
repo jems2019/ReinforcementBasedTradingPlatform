@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.reinforcementtradingapp.dashboard.AddStockFragment
 import com.example.reinforcementtradingapp.dashboard.StocksMainDashboardActivity
 import com.example.reinforcementtradingapp.models.StockInfo
@@ -30,14 +31,6 @@ class SearchStockReviewActivity : AppCompatActivity() {
         setContentView(R.layout.search_stock_review_layout)
         stockTicker = intent.getStringExtra("stock_ticker")
         progressBar1.visibility = View.VISIBLE
-        trade_from_search.setOnClickListener {
-            val intent = Intent(this, StocksMainDashboardActivity::class.java)
-            intent.putExtra("current_user", FirebaseAuth.getInstance().currentUser)
-            intent.putExtra("fragment_to_load", "AddStock")
-            intent.putExtra("stock_ticker", stockTicker)
-            finish()
-            startActivity(intent)
-        }
         window.setFlags(
             WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
             WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
@@ -71,9 +64,19 @@ class SearchStockReviewActivity : AppCompatActivity() {
                 search_review_open.text = String.format(resources.getString(R.string.stock_open), stockInfo.open)
                 search_review_low.text = String.format(resources.getString(R.string.stock_low), stockInfo.low)
                 search_review_volume.text = String.format(resources.getString(R.string.stock_volume), stockInfo.volume)
-                search_review_recommendation.text = String.format(resources.getString(R.string.stock_recomendation), tradeAction.action)
+                search_review_recommendation.text = String.format(resources.getString(R.string.stock_recomendation), tradeAction.action.toUpperCase())
+                when (tradeAction.action) {
+                    "buy" -> {
+                        search_review_recommendation.setTextColor(ContextCompat.getColor(this, R.color.light_green))
+                    }
+                    "sell" -> {
+                        search_review_recommendation.setTextColor(ContextCompat.getColor(this, R.color.light_red))
+                    }
+                    else -> {
+                        search_review_recommendation.setTextColor(ContextCompat.getColor(this, R.color.white))
+                    }
+                }
                 progressBar1.visibility = View.GONE
-                trade_from_search.visibility = View.VISIBLE
                 window.clearFlags(
                     WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
             },{throwable: Throwable ->

@@ -6,19 +6,21 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.reinforcementtradingapp.R
 import com.example.reinforcementtradingapp.dashboard.Adapters.StocksAdapter
 import com.example.reinforcementtradingapp.models.Stock
 import com.example.reinforcementtradingapp.models.UserPortfolioData
 import com.example.reinforcementtradingapp.retrofit.ReinforcementTradingAPI
+import com.google.firebase.auth.FirebaseUser
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.portfolio_fragment.*
-import rx.Scheduler
-import com.google.firebase.auth.FirebaseUser as FirebaseUser
+
 
 class PortfolioFragment : Fragment(){
     private lateinit var userPortfolioData: UserPortfolioData
@@ -37,6 +39,10 @@ class PortfolioFragment : Fragment(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         getNumberStocksSubscription()
+        val myDivider =
+            DividerItemDecoration(context, DividerItemDecoration.VERTICAL)
+        myDivider.setDrawable(ContextCompat.getDrawable(context!!, R.drawable.divider)!!)
+        portfolio_stocks_recycler_view.addItemDecoration(myDivider)
     }
 
     private fun getNumberStocksSubscription() {

@@ -6,7 +6,7 @@ import kotlinx.android.parcel.Parcelize
 class Stock(
     val userId: String,
     val autoTrade: Boolean,
-    val initialBalance: String,
+    val initialBalance: Double,
     val minBalance: String,
     val balance: Double,
     val stockTicker: String,
