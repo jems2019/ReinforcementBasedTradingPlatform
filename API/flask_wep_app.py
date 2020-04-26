@@ -59,11 +59,17 @@ def get_rl_action(ticker, date):
         str_date = index.strftime('%Y-%m-%d')
         # get the sentiment from firebase for date
         docs = sent_ref.where(u'date', u'==', str_date).stream()
-        # if not in firebase, add it
+        date_exists = False
+        #if date is there, but sent is not
         for doc in docs:
+            date_exists = True
             if not (ticker in doc.to_dict().keys()):
                 print(str_date + ' ' + ticker + ' sentiment not in firebase, adding it')
                 store_sentiment(ticker, str_date, str_date)
+        #if no date in firebase
+        if not(date_exists):
+            print(str_date + ' ' + ticker + ' sentiment not in firebase, adding it')
+            store_sentiment(ticker, str_date, str_date)
 
         # reload docs
         docs = sent_ref.where(u'date', u'==', str_date).stream()
@@ -176,7 +182,7 @@ def auto_trade_stock(doc):
         updated_dict['balance'] = balance
         updated_dict['sharesHeld'] = shares_held + shares_to_buy
         updated_dict['transactions'].append(trans_id)
-        if (balance) < min_bal:
+        if (balance + updated_dict['sharesHeld']*current_price) < min_bal:
             updated_dict['autoTrade'] = False
         stocks_ref.document(doc.id).set(updated_dict)
         print('updated stock\n')
@@ -199,6 +205,7 @@ def auto_trade_stock(doc):
             'stockTicker': ticker,
             'timestamp': firestore.SERVER_TIMESTAMP,
             'userId': user_id,
+            'portfolioValue': portfolio_value,
             'action_type': 'sell'
         }
 
@@ -212,7 +219,7 @@ def auto_trade_stock(doc):
         updated_dict['balance'] = balance
         updated_dict['sharesHeld'] = shares_held + shares_to_buy
         updated_dict['transactions'].append(trans_id)
-        if (balance) < min_bal:
+        if (balance + updated_dict['sharesHeld']*current_price) < min_bal:
             updated_dict['autoTrade'] = False
         stocks_ref.document(doc.id).set(updated_dict)
         print('updated stock\n')
@@ -236,11 +243,21 @@ def auto_trade_user(user_id):
 
 # auto trades all the users
 def auto_trade_all():
+    print('starting auto trading for all users...')
     user_ref = db.collection('users')
     users = user_ref.stream()
     for user in users:
         auto_trade_user(user.id)
 
+
+def store_test():
+    print('storing test')
+    test_ref = db.collection('test')
+    new_test = test_ref.document()
+    new_test.set({'a':'a'})
+
+def test_scheduler():
+    print('Testing scheduler at ' + str(datetime.now()))
 
 # ---set up automatic updates---#
 
@@ -250,8 +267,9 @@ sched = BackgroundScheduler(daemon=True)
 # set autotrading to happen at noon every day
 today = datetime.today().strftime('%Y-%m-%d')
 today += ' 12:00:00'
-# auto trade all every day
+# auto trade all every day at 12 pm
 sched.add_job(auto_trade_all, trigger='interval', days=1, start_date=today)
+sched.add_job(test_scheduler, trigger='interval', minutes=1, start_date=today)
 sched.start()
 
 
