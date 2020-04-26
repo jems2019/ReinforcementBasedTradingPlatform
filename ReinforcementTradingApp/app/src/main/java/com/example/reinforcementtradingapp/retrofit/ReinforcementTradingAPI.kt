@@ -61,6 +61,9 @@ class ReinforcementTradingAPI {
                            @Query("amount") amount: Double,
                            @Query("minBalance") minBalance: Double): Single<ResponseBody>
 
+        @GET("/api/get_sentiment/")
+        fun getSentiment(@Query("date") date: String): Single<StockSentiment>
+
     }
 
     companion object {

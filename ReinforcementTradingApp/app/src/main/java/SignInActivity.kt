@@ -1,5 +1,6 @@
 package com.example.reinforcementtradingapp
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -7,6 +8,7 @@ import android.widget.Toast
 import androidx.annotation.MainThread
 import androidx.appcompat.app.AppCompatActivity
 import com.example.reinforcementtradingapp.dashboard.StocksMainDashboardActivity
+import com.example.reinforcementtradingapp.models.StockSentiment
 import com.example.reinforcementtradingapp.models.UserData
 import com.example.reinforcementtradingapp.retrofit.ReinforcementTradingAPI
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -23,18 +25,23 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.gson.Gson
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.sign_in_layout.*
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.logging.Logger
+import kotlin.collections.HashMap
 
 class SignInActivity : AppCompatActivity() {
 
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var auth: FirebaseAuth
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -122,11 +129,30 @@ class SignInActivity : AppCompatActivity() {
                             intent.putExtra("current_user", currentUser)
                             intent.putExtra("fragment_to_load", "Portfolio")
                             intent.putExtra("stocks", stocks)
-                            startActivity(intent)
+                            getSentimentDataSubscription(intent)
+
                         }
                     }
                 })
         }
+    }
+
+    @SuppressLint("CheckResult")
+    private fun getSentimentDataSubscription(intent: Intent) {
+        ReinforcementTradingAPI
+            .service
+            .getSentiment(SimpleDateFormat("yyyy-MM-dd").
+            format(Calendar.getInstance().time))
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe({
+                intent.putExtra("sentiment", it)
+                startActivity(intent)
+            },{throwable: Throwable ->
+                Log.e("SignInActivity", throwable.toString())
+                intent.putExtra("sentiment", StockSentiment(HashMap()))
+                startActivity(intent)
+            })
     }
 
 

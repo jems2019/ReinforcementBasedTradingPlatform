@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.reinforcementtradingapp.R
 import com.example.reinforcementtradingapp.dashboard.Adapters.StocksAdapter
 import com.example.reinforcementtradingapp.models.Stock
+import com.example.reinforcementtradingapp.models.StockSentiment
 import com.example.reinforcementtradingapp.models.UserPortfolioData
 import com.example.reinforcementtradingapp.retrofit.ReinforcementTradingAPI
 import com.google.firebase.auth.FirebaseUser
@@ -28,10 +29,12 @@ class PortfolioFragment : Fragment(){
     private var stocks: ArrayList<Stock> = ArrayList()
     private lateinit var linearLayoutManager: LinearLayoutManager
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
+    private lateinit var sentiment: StockSentiment
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View?{
         user = activity?.intent?.getParcelableExtra("current_user")!!
+        sentiment = activity?.intent?.getParcelableExtra("sentiment")!!
         return inflater.inflate(R.layout.portfolio_fragment, container, false)
     }
 
@@ -60,6 +63,7 @@ class PortfolioFragment : Fragment(){
                 portfolio_stocks_recycler_view.adapter =
                     StocksAdapter(
                         stocks,
+                        sentiment.sentiment,
                         context!!
                     ) {
                         val intent = Intent(context, ReviewStockTradeActivity::class.java)

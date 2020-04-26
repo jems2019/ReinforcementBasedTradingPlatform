@@ -23,9 +23,8 @@
         android:layout_centerVertical="true"
         android:textSize="24sp"
         android:text="135"
-        android:textColor="@color/white"
         android:textAlignment="center"
         android:layout_margin="10dp"
         android:maxLines="1"
-        android:background="@color/colorPrimary"/>
+        android:background="@color/yellow"/>
 </RelativeLayout>

@@ -31,6 +31,7 @@ class SearchFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         linearLayoutManager = LinearLayoutManager(context)
         searchStockList.add("AAPL")
         searchStockList.add("AMZN")

@@ -5,13 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.reinforcementtradingapp.R
 import com.example.reinforcementtradingapp.models.Stock
 import kotlinx.android.synthetic.main.stocks_row.view.*
 import java.math.RoundingMode
 
-class StocksAdapter(val stocks: ArrayList<Stock>, val context: Context, val listener: (Stock) -> Unit) :
+class StocksAdapter(val stocks: ArrayList<Stock>, val map: HashMap<String, Float>, val context: Context, val listener: (Stock) -> Unit) :
     RecyclerView.Adapter<StocksAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(
@@ -38,6 +39,14 @@ class StocksAdapter(val stocks: ArrayList<Stock>, val context: Context, val list
             else {
                 holder.numShares.text = stocks[position].sharesHeld.toString()
                 isSharesHeld = true
+            }
+        }
+
+        map[stocks[position].stockTicker]?.let {sentiment ->
+            if(sentiment > 0) {
+                holder.numShares.setBackgroundColor(ContextCompat.getColor(context, R.color.light_green))
+            } else {
+                holder.numShares.setBackgroundColor(ContextCompat.getColor(context, R.color.light_red))
             }
         }
     }
