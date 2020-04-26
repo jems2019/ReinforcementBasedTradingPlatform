@@ -1,6 +1,7 @@
 package com.example.reinforcementtradingapp.dashboard
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -50,8 +51,12 @@ class AddStockFragment : Fragment() {
            .subscribeOn(Schedulers.io())
            .subscribe({
                clearFields()
+               userData.stocks.add(enter_stock_edit_text.text.toString())
                Toast.makeText(context, "Added stock to User", Toast.LENGTH_SHORT).show()
-           },{}))
+           },{ throwable: Throwable ->
+               Log.e("AddStockFragment", throwable.toString())
+
+           }))
     }
 
     private fun updateStockForUserSubscription() {
@@ -62,7 +67,8 @@ class AddStockFragment : Fragment() {
             .subscribe({
                     clearFields()
                     Toast.makeText(context, "Updated Stock Balances", Toast.LENGTH_SHORT).show()
-            },{
+            },{ throwable: Throwable ->
+                Log.e("AddStockFragment", throwable.toString())
 
             }))
     }

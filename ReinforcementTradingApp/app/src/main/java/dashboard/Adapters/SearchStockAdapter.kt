@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Filter
 import android.widget.Filterable
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import com.example.reinforcementtradingapp.R
 import kotlinx.android.synthetic.main.search_stock_row.view.*
@@ -41,13 +43,13 @@ class SearchStockAdapter(private val context: Context, private var stocks: Array
     override fun getFilter(): Filter {
         return object : Filter() {
             override fun performFiltering(constraint: CharSequence?): FilterResults {
-                val charSearch = constraint.toString()
+                val charSearch = constraint.toString().toUpperCase()
                 stocksFilterList = if(charSearch.isEmpty()) {
                     ArrayList()
                 } else {
                     val results = ArrayList<String>()
                     for(stock in stocks) {
-                        if(stock.toLowerCase().equals(charSearch)) {
+                        if(stock.contains(charSearch)) {
                             results.add(stock)
                         }
                     }

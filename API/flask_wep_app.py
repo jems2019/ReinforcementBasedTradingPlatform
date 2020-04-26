@@ -486,8 +486,8 @@ def update_stock_for_user():
             doc_update = stocks_ref.document(doc.id)
             doc_update.update(
                 {
-                    'balance': firestore.Increment(int(request.args.get('amount'))),
-                    'initialBalance': firestore.Increment(int(request.args.get('amount'))),
+                    'balance': firestore.Increment(float(request.args.get('amount'))),
+                    'initialBalance': firestore.Increment(float(request.args.get('amount'))),
                     'minBalance': request.args.get('minBalance'),
                 }
             )

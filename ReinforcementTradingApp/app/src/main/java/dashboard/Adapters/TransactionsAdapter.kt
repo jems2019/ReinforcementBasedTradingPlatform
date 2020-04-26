@@ -14,7 +14,7 @@ import com.example.reinforcementtradingapp.models.Transaction
 import kotlinx.android.synthetic.main.transaction_row.view.*
 import java.math.RoundingMode
 
-class TransactionsAdapter(val transactions: ArrayList<Transaction>, val context: Context, val listener: (Stock) -> Unit) :
+class TransactionsAdapter(val transactions: List<Transaction>, val context: Context, val listener: (Stock) -> Unit) :
     RecyclerView.Adapter<TransactionsAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(
@@ -28,15 +28,23 @@ class TransactionsAdapter(val transactions: ArrayList<Transaction>, val context:
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         var action = ""
-        if(transactions[position].actionType == "buy") {
-            holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.light_green))
-            action = "Bought "
+        if(transactions[position].sharesTransacted > 0) {
+            action = if(transactions[position].actionType == "buy") {
+                holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.light_green))
+                "Bought "
+
+            } else {
+                holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.light_red))
+                "Sold "
+            }
+            holder.transactionType.text = action + transactions[position].sharesTransacted + " shares"
+            holder.transactionDate.text = transactions[position].timestamp.substringBefore(" ")
         } else {
-            holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.light_red))
-            action = "Sold "
+            holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.white))
+            holder.transactionType.text = "Held Position"
+            holder.transactionDate.text = transactions[position].timestamp.substringBefore(" ")
         }
-        holder.transactionType.text = action + transactions[position].sharesTransacted + " shares"
-        holder.transactionDate.text = transactions[position].timestamp.substringBefore(" ")
+
     }
 
    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {

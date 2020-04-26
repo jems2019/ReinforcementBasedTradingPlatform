@@ -38,11 +38,12 @@ class PortfolioFragment : Fragment(){
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        getNumberStocksSubscription()
         val myDivider =
             DividerItemDecoration(context, DividerItemDecoration.VERTICAL)
         myDivider.setDrawable(ContextCompat.getDrawable(context!!, R.drawable.divider)!!)
         portfolio_stocks_recycler_view.addItemDecoration(myDivider)
+        getNumberStocksSubscription()
+
     }
 
     private fun getNumberStocksSubscription() {

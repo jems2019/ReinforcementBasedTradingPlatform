@@ -1,6 +1,8 @@
 package com.example.reinforcementtradingapp.retrofit
 
 
+import android.content.Context
+import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.example.reinforcementtradingapp.models.*
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
@@ -13,6 +15,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.coroutineContext
 
 
 class ReinforcementTradingAPI {
@@ -66,8 +69,8 @@ class ReinforcementTradingAPI {
             .readTimeout(100, TimeUnit.SECONDS).build()
 
         private val retrofit = Retrofit.Builder()
-//                .baseUrl("http://10.0.2.2:5000").client(client)
-                .baseUrl("https://reinforcementtradingplatform.web.app")
+                .baseUrl("http://10.0.2.2:5000").client(client)
+//                .baseUrl("https://reinforcementtradingplatform.web.app")
                 .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()

@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -36,6 +37,10 @@ class SearchFragment : Fragment() {
         searchStockList.add("FB")
         searchStockList.add("MSFT")
 
+        val myDivider =
+            DividerItemDecoration(context, DividerItemDecoration.VERTICAL)
+        myDivider.setDrawable(ContextCompat.getDrawable(context!!, R.drawable.divider)!!)
+        search_results_recycler_view.addItemDecoration(myDivider)
         search_results_recycler_view.layoutManager = linearLayoutManager
         adapter = SearchStockAdapter(context!!, searchStockList)
         { stockTicker->
@@ -44,6 +49,7 @@ class SearchFragment : Fragment() {
             startActivity(intent)
         }
         search_results_recycler_view.adapter = adapter
+        search_results_recycler_view.visibility = View.GONE
         search_results_recycler_view.addItemDecoration(DividerItemDecoration(context, LinearLayoutManager.HORIZONTAL))
         search_stock.queryHint = "Enter Stock Ticker Symbol"
         search_stock.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
@@ -53,6 +59,7 @@ class SearchFragment : Fragment() {
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 adapter.filter.filter(newText)
+                search_results_recycler_view.visibility = View.VISIBLE
                 return false
             }
         })
