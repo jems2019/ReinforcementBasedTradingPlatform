@@ -236,7 +236,10 @@ def auto_trade_user(user_id):
 
     # for each stock the user has, auto trade
     for doc in docs:
-        auto_trade_stock(doc)
+        try:
+            auto_trade_stock(doc)
+        except:
+            print(str(doc.to_dict()['stockTicker']) + ' does not work')
 
     return
 
@@ -260,17 +263,18 @@ def test_scheduler():
     print('Testing scheduler at ' + str(datetime.now()))
 
 # ---set up automatic updates---#
+# doesn't work on hosted version, so commenting it out for now
 
-# scheduler
-sched = BackgroundScheduler(daemon=True)
+# # scheduler
+# sched = BackgroundScheduler(daemon=True)
 
-# set autotrading to happen at noon every day
-today = datetime.today().strftime('%Y-%m-%d')
-today += ' 12:00:00'
-# auto trade all every day at 12 pm
-sched.add_job(auto_trade_all, trigger='interval', days=1, start_date=today)
-sched.add_job(test_scheduler, trigger='interval', minutes=1, start_date=today)
-sched.start()
+# # set autotrading to happen at noon every day
+# today = datetime.today().strftime('%Y-%m-%d')
+# today += ' 12:00:00'
+# # auto trade all every day at 12 pm
+# sched.add_job(auto_trade_all, trigger='interval', days=1, start_date=today)
+# sched.add_job(test_scheduler, trigger='interval', minutes=1, start_date=today)
+# sched.start()
 
 
 # ---API functions---#
@@ -338,6 +342,12 @@ def api_get_rl_action_on_fly():
     }
 
     return jsonify(response)
+
+
+@app.route('/api/auto_trade_all/', methods=["POST"])
+def api_auto_trade_all():
+    auto_trade_all()
+    return jsonify({'success': True})
 
 
 @app.route('/api/auto_trade_user/', methods=["POST"])
@@ -504,8 +514,8 @@ def update_stock_for_user():
             doc_update = stocks_ref.document(doc.id)
             doc_update.update(
                 {
-                    'balance': firestore.Increment(float(request.args.get('amount'))),
-                    'initialBalance': firestore.Increment(float(request.args.get('amount'))),
+                    'balance': firestore.Increment(int(request.args.get('amount'))),
+                    'initialBalance': firestore.Increment(int(request.args.get('amount'))),
                     'minBalance': request.args.get('minBalance'),
                 }
             )
@@ -551,6 +561,21 @@ def hello_user(user):
     return "Hello %s!" % user
 
 
+
+@app.route('/api/get_sentiment/', methods=["GET"])
+def api_get_sentiment():
+    str_date = str(request.args.get('date'))
+    # firebase ref
+    sent_ref = db.collection("sentiment")
+    docs = sent_ref.where(u'date', u'==', str_date).stream()
+    sent_dict = dict()
+    for doc in docs:
+        sent_dict=doc.to_dict()
+
+    sent_dict.pop('date', None)
+    return jsonify(sent_dict)
+
+
 # store sentiment data to the firebase
 """
 params - 
@@ -561,6 +586,7 @@ end_date: <date in form YYYY-MM-DD> - forms range to get sentiment from
 
 returns - 
 successful on finishing
+
 """
 
 
@@ -580,3 +606,4 @@ if __name__ == '__main__':
     # app.run(host='0.0.0.0', port=5000)
     app.run(debug=True, host='0.0.0.0',
             port=int(os.environ.get('PORT', 5000)))
+            #use_reloader=False) # to prevent double reload
